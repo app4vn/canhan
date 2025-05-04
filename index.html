@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân v2.2</title>
+    <title>Ứng dụng Phát triển Cá nhân v2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -109,7 +109,7 @@
             focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500;
         }
 
-        /* --- Time Management (ToDo List & Pomodoro) Specific --- */
+        /* --- Time Management (ToDo List) Specific --- */
         .todo-item { background-color: white; padding: 0.75rem 1rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; margin-bottom: 0.75rem; }
         .todo-item.editing { background-color: #f0fdfa !important; border-color: #99f6e4; }
         .todo-item-content { display: flex; justify-content: space-between; align-items: center; }
@@ -118,25 +118,17 @@
         .todo-item.completed .todo-text { text-decoration: line-through; color: #6b7280; }
         .todo-item.completed { background-color: #f3f4f6 !important; }
         .todo-checkbox { width: 1.25rem; height: 1.25rem; border-radius: 0.25rem; border: 1px solid #9ca3af; cursor: pointer; accent-color: #14b8a6; flex-shrink: 0; }
-        .todo-details { font-size: 0.75rem; color: #4b5563; margin-top: 0.25rem; padding-left: 2rem; display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+        .todo-details { font-size: 0.75rem; color: #4b5563; margin-top: 0.25rem; padding-left: 2rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
         .todo-priority { font-weight: 500; padding: 0.1rem 0.4rem; border-radius: 0.25rem; }
-        .priority-High { background-color: #fee2e2; color: #b91c1c; }
-        .priority-Medium { background-color: #fef3c7; color: #a16207; }
-        .priority-Low { background-color: #dbeafe; color: #1e40af; }
+        .priority-High { background-color: #fee2e2; color: #b91c1c; } /* Red */
+        .priority-Medium { background-color: #fef3c7; color: #a16207; } /* Amber */
+        .priority-Low { background-color: #dbeafe; color: #1e40af; } /* Blue */
         .todo-due-date { font-style: italic; }
         .todo-due-date.overdue { color: #dc2626; font-weight: 600; }
         .todo-edit-area { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb; }
         .todo-edit-area label { display: block; font-size: 0.75rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
         .todo-edit-area input, .todo-edit-area select { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; margin-bottom: 0.75rem; font-size: 0.875rem; focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500; }
-        .pomodoro-timer { background-color: #f0fdfa; border: 1px solid #ccfbf1; padding: 1.5rem; border-radius: 0.5rem; margin-bottom: 1.5rem; text-align: center; }
-        #timer-display { font-size: 3rem; font-weight: 700; color: #0f766e; display: block; margin-bottom: 1rem; }
-        #timer-mode { font-size: 0.875rem; font-weight: 500; color: #115e59; margin-bottom: 1rem; display: block; }
-        .timer-controls button { background-color: #14b8a6; color: white; font-weight: 600; padding: 0.5rem 1rem; border-radius: 0.375rem; margin: 0 0.5rem; transition: background-color 0.15s ease-in-out; }
-        .timer-controls button:hover { background-color: #0d9488; }
-        .timer-controls button#pause-timer-btn { background-color: #fcd34d; color: #78350f; }
-        .timer-controls button#pause-timer-btn:hover { background-color: #fbbf24; }
-        .timer-controls button#reset-timer-btn { background-color: #f87171; color: #7f1d1d; }
-        .timer-controls button#reset-timer-btn:hover { background-color: #ef4444; }
+
 
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -199,13 +191,6 @@
         let calendarDate = new Date();
         let skillSortPreference = localStorage.getItem('skillSortPref') || 'name_asc';
         let todoSortPreference = localStorage.getItem('todoSortPref') || 'default';
-        // Pomodoro Timer State
-        let timerInterval = null;
-        let timerMode = 'work'; // 'work', 'shortBreak'
-        const WORK_DURATION = 25 * 60; // 25 minutes
-        const BREAK_DURATION = 5 * 60; // 5 minutes
-        let timerSecondsRemaining = WORK_DURATION;
-        let timerState = 'stopped'; // 'running', 'paused', 'stopped'
 
         // --- SVG Icons ---
         const ICONS = { /* ... (Icons remain the same) ... */ edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`, check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`, undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`, save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`, cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`, pin: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" /></svg>`, pin_filled: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M16.5 3.75a.75.75 0 0 1 .75.75v11.19l-4.72-2.36a.75.75 0 0 0-.56 0L7.5 15.69V4.5a.75.75 0 0 1 .75-.75h7.5Z" clip-rule="evenodd" /><path d="M18 3.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6A2.25 2.25 0 0 1 6 3.75h12Z" /></svg>`, history: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`, fire: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8.75 1.75a.75.75 0 0 0-1.5 0v1.313c-.37-.1-.76-.163-1.17-.198C4.895 2.798 4 3.65 4 4.857c0 .41.13 1.03.393 1.776.24.69.662 1.42 1.28 2.065.617.645 1.333 1.176 2.146 1.571a.75.75 0 0 0 .44-.073c.813-.395 1.53- .926 2.147-1.57.618-.646 1.04-1.376 1.28-2.066C11.87 5.888 12 5.267 12 4.857c0-1.206-.895-2.059-2.08-2.186-.41-.035-.8-.1-1.17-.198V1.75Z" /><path d="M4.708 11.584a.75.75 0 0 1 .875.016C6.333 12.06 7.167 12.5 8 12.5s1.667-.44 2.417-.9a.75.75 0 0 1 .875-.016 14.41 14.41 0 0 1 1.145.61c.217.12.4.27.548.454a.75.75 0 0 1-.918 1.183 12.905 12.905 0 0 0-2.54-.714c-.427-.089-.86-.133-1.296-.133s-.87.044-1.297.133a12.904 12.904 0 0 0-2.54.714.75.75 0 0 1-.918-1.183c.148-.184.33-.334.548-.454a14.411 14.411 0 0 1 1.145-.61Z" /></svg>` };
@@ -222,111 +207,84 @@
                  appContent.className = 'app-module-container';
             }
             appContent.innerHTML = `
-                <h2 class="text-xl font-semibold mb-4">Quản lý Thời gian</h2>
+                <h2 class="text-xl font-semibold mb-4">Danh sách Việc cần làm</h2>
+                <button id="show-todo-form-btn" class="add-new-button" style="background-color: #14b8a6;">Thêm việc mới</button>
+                <form id="add-todo-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden">
+                     <div>
+                         <label for="todo-input" class="block text-sm font-medium text-gray-700 mb-1">Nội dung công việc:</label>
+                         <input type="text" id="todo-input" placeholder="Ví dụ: Hoàn thành báo cáo tuần" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                     </div>
+                     {/* Added Priority Select */}
+                     <div>
+                         <label for="todo-priority-select" class="block text-sm font-medium text-gray-700 mb-1">Ưu tiên:</label>
+                         <select id="todo-priority-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                            <option value="Medium" selected>Trung bình</option>
+                            <option value="High">Cao</option>
+                            <option value="Low">Thấp</option>
+                         </select>
+                     </div>
+                     {/* Added Due Date Input */}
+                     <div>
+                         <label for="todo-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label>
+                         <input type="date" id="todo-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                     </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                            Thêm
+                        </button>
+                        <button id="cancel-add-todo-btn" type="button" class="form-cancel-button">Hủy</button>
+                    </div>
+                </form>
 
-                
-                <div class="pomodoro-timer">
-                    <span id="timer-mode" class="text-sm font-medium text-teal-800">Chế độ làm việc</span>
-                    <span id="timer-display" class="text-5xl font-bold text-teal-700">25:00</span>
-                    <div class="timer-controls space-x-2">
-                        <button id="start-timer-btn">Bắt đầu</button>
-                        <button id="pause-timer-btn">Tạm dừng</button>
-                        <button id="reset-timer-btn">Đặt lại</button>
+                 <div class="flex justify-end mb-4">
+                     <div class="flex items-center space-x-2">
+                         <label for="todo-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label>
+                         <select id="todo-sort-select" class="sort-select">
+                             <option value="default" ${todoSortPreference === 'default' ? 'selected' : ''}>Mặc định</option>
+                             <option value="priority_high_low" ${todoSortPreference === 'priority_high_low' ? 'selected' : ''}>Ưu tiên (Cao-Thấp)</option>
+                             <option value="due_date_asc" ${todoSortPreference === 'due_date_asc' ? 'selected' : ''}>Hạn gần nhất</option>
+                             <option value="newest" ${todoSortPreference === 'newest' ? 'selected' : ''}>Mới nhất</option>
+                             <option value="oldest" ${todoSortPreference === 'oldest' ? 'selected' : ''}>Cũ nhất</option>
+                         </select>
                     </div>
                 </div>
 
-              
-                <div class="mt-8">
-                    <h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Việc cần làm</h3>
-                    <button id="show-todo-form-btn" class="add-new-button" style="background-color: #14b8a6;">Thêm việc mới</button>
-                    <form id="add-todo-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden">
-                        <div>
-                            <label for="todo-input" class="block text-sm font-medium text-gray-700 mb-1">Nội dung công việc:</label>
-                            <input type="text" id="todo-input" placeholder="Ví dụ: Hoàn thành báo cáo tuần" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
-                        </div>
-                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="todo-priority-select" class="block text-sm font-medium text-gray-700 mb-1">Ưu tiên:</label>
-                                <select id="todo-priority-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
-                                    <option value="Medium" selected>Trung bình</option>
-                                    <option value="High">Cao</option>
-                                    <option value="Low">Thấp</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="todo-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label>
-                                <input type="date" id="todo-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
-                            </div>
-                         </div>
-                        <div class="flex justify-end">
-                            <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">
-                                Thêm
-                            </button>
-                            <button id="cancel-add-todo-btn" type="button" class="form-cancel-button">Hủy</button>
-                        </div>
-                    </form>
-
-                
-                     <div class="flex justify-end mb-4">
-                         <div class="flex items-center space-x-2">
-                             <label for="todo-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label>
-                             <select id="todo-sort-select" class="sort-select">
-                                 <option value="default" ${todoSortPreference === 'default' ? 'selected' : ''}>Mặc định</option>
-                                 <option value="priority_high_low" ${todoSortPreference === 'priority_high_low' ? 'selected' : ''}>Ưu tiên (Cao-Thấp)</option>
-                                 <option value="due_date_asc" ${todoSortPreference === 'due_date_asc' ? 'selected' : ''}>Hạn gần nhất</option>
-                                 <option value="newest" ${todoSortPreference === 'newest' ? 'selected' : ''}>Mới nhất</option>
-                                 <option value="oldest" ${todoSortPreference === 'oldest' ? 'selected' : ''}>Cũ nhất</option>
-                             </select>
-                        </div>
-                    </div>
-
-                    <div id="todo-list"></div>
-                </div>
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Công việc</h3>
+                <div id="todo-list"></div>
             `;
 
-            // Get references for ToDo
+            // Get references
             const showTodoFormBtn = document.getElementById('show-todo-form-btn');
             const addTodoForm = document.getElementById('add-todo-form');
             const todoInput = document.getElementById('todo-input');
-            const todoPrioritySelect = document.getElementById('todo-priority-select');
-            const todoDueDateInput = document.getElementById('todo-due-date-input');
+            const todoPrioritySelect = document.getElementById('todo-priority-select'); // Get priority select
+            const todoDueDateInput = document.getElementById('todo-due-date-input'); // Get due date input
             const cancelAddTodoBtn = document.getElementById('cancel-add-todo-btn');
-            const todoSortSelect = document.getElementById('todo-sort-select');
+            const todoSortSelect = document.getElementById('todo-sort-select'); // Get sort select
             const todoList = document.getElementById('todo-list');
 
-            // Get references for Pomodoro
-            const timerDisplay = document.getElementById('timer-display');
-            const timerModeDisplay = document.getElementById('timer-mode');
-            const startTimerBtn = document.getElementById('start-timer-btn');
-            const pauseTimerBtn = document.getElementById('pause-timer-btn');
-            const resetTimerBtn = document.getElementById('reset-timer-btn');
-
-            // Event listeners for ToDo
+            // Event listeners
             showTodoFormBtn.addEventListener('click', () => { addTodoForm.classList.remove('hidden'); showTodoFormBtn.classList.add('hidden'); todoInput.focus(); });
             cancelAddTodoBtn.addEventListener('click', () => {
                 addTodoForm.classList.add('hidden');
                 showTodoFormBtn.classList.remove('hidden');
                 todoInput.value = '';
-                todoPrioritySelect.value = 'Medium';
-                todoDueDateInput.value = '';
+                todoPrioritySelect.value = 'Medium'; // Reset priority
+                todoDueDateInput.value = ''; // Reset due date
             });
             addTodoForm.addEventListener('submit', (e) => {
                 e.preventDefault();
+                // Pass new inputs to addTodo
                 addTodo(todoInput, todoPrioritySelect, todoDueDateInput, todoList, addTodoForm, showTodoFormBtn);
             });
+            // Sort listener
              todoSortSelect.addEventListener('change', (e) => {
                 todoSortPreference = e.target.value;
                 localStorage.setItem('todoSortPref', todoSortPreference);
-                displayTodos(todoList, todoSortPreference);
+                displayTodos(todoList, todoSortPreference); // Re-display with new sort
             });
 
-            // Event listeners for Pomodoro
-            startTimerBtn.addEventListener('click', startPomodoro);
-            pauseTimerBtn.addEventListener('click', pausePomodoro);
-            resetTimerBtn.addEventListener('click', resetPomodoro);
-
             // Initial display
-            updateTimerDisplay(); // Show initial time
             displayTodos(todoList, todoSortPreference);
         }
 
@@ -347,14 +305,6 @@
                 button.classList.toggle('active', button.dataset.module === currentModule);
             });
 
-            // Clear interval if switching away from time module
-            if (currentModule !== 'time' && timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-                timerState = 'stopped';
-                 console.log("Timer stopped due to module switch.");
-            }
-
             appContent.innerHTML=`<p class="empty-state-message">Đang tải ${currentModule}...</p>`;
             setTimeout(()=>{
                 switch (currentModule) {
@@ -369,16 +319,15 @@
         }
 
         // --- Note Management Functions ---
-        /* ... (Code remains the same as v1.9) ... */
-        function getNotes() { const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no, isPinned: no.isPinned || false })); } catch(e){console.error("Error parsing notes:",e); return [];} }
-        function saveNotes(notes) { localStorage.setItem('quickNotes',JSON.stringify(notes)); }
-        function formatTimestamp(timestamp) { if(!timestamp)return ''; const d=new Date(timestamp); return `${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}, ${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}`; }
-        function displayNotes(listEl, searchEl, sortBy = noteSortPreference, term = '') { if(!listEl||!searchEl){return;} let n=getNotes(); const s=term.toLowerCase().trim(); if(s){n=n.filter(no=>no.content.toLowerCase().includes(s));} n.sort((a,b)=>{if(a.isPinned!==b.isPinned){return b.isPinned-a.isPinned;} switch(sortBy){case 'oldest':return (a.createdAt||0)-(b.createdAt||0); case 'name_asc':return (a.content||'').localeCompare(b.content||''); case 'name_desc':return (b.content||'').localeCompare(a.content||''); case 'newest': default: return (b.modifiedAt||b.createdAt||0)-(a.modifiedAt||a.createdAt||0);}}); listEl.innerHTML=''; if(n.length===0){listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return;} n.forEach((no, index)=>{const ne=document.createElement('div'); ne.dataset.noteId=no.id; const bg=index%2===0?'bg-white':'bg-gray-50'; ne.classList.add('note-item',bg,'flex','flex-col'); if(no.isPinned){ne.classList.add('pinned'); ne.classList.remove('bg-white','bg-gray-50'); ne.classList.add('bg-yellow-100');} if(no.isPinned){const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.innerHTML=ICONS.pin_filled; ne.appendChild(pi);} const tr=document.createElement('div'); tr.classList.add('flex','justify-between','items-start','w-full','note-top-row'); const cc=document.createElement('div'); cc.classList.add('flex-grow','mr-2','note-content-container'); const ce=document.createElement('p'); ce.classList.add('note-content','text-gray-800'); ce.textContent=no.content; cc.appendChild(ce); const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center','note-button-container'); const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(no.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim ghi chú');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim ghi chú');} pb.onclick=()=>toggleNotePin(no.id,listEl,searchEl); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa ghi chú'); eb.onclick=()=>toggleEdit(no.id,listEl,searchEl); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa ghi chú'); db.onclick=()=>deleteNote(no.id,listEl,searchEl); bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(db); tr.appendChild(cc); tr.appendChild(bc); const ts=document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(no.createdAt); const md=formatTimestamp(no.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:''); ne.appendChild(tr); if(ts.textContent){ne.appendChild(ts);} listEl.appendChild(ne);}); }
-        function addNote(inputEl, searchEl, formContainer, showFormBtn) { if(!inputEl||!searchEl||!formContainer||!showFormBtn)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now,content:c,createdAt:now,modifiedAt:null,isPinned:false}; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; formContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl, noteSortPreference);}} }
-        function deleteNote(id, listEl, searchEl) { if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); }
-        function toggleEdit(id, listEl, searchEl) { displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); const ne=listEl.querySelector(`[data-note-id='${id}']`); if(!ne)return; const cc=ne.querySelector('.note-content-container'); const bc=ne.querySelector('.note-button-container'); if(!cc||!bc){console.error("Could not find content/button container for note edit:",id); return;} const ns=getNotes(); const no=ns.find(n=>n.id===id); if(!no)return; cc.innerHTML=''; bc.innerHTML=''; const ei=document.createElement('textarea'); ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content'); ei.value=no.content; cc.appendChild(ei); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveEdit(id,ei.value,listEl,searchEl); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); bc.appendChild(sb); bc.appendChild(cb); ne.classList.add('editing'); ei.focus(); }
-        function saveEdit(id, content, listEl, searchEl) { const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value);} }
-        function toggleNotePin(noteId, listEl, searchEl) { let n=getNotes(); const i=n.findIndex(no=>no.id===noteId); if(i>-1){n[i].isPinned=!n[i].isPinned; n[i].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); console.log(`Toggled pin note: ${noteId} to ${n[i].isPinned}`);} else {console.error("Cannot find note to pin:",noteId);} }
+        function getNotes() { /* ... (Code from v1.0) ... */ const n=localStorage.getItem('quickNotes'); try { const p=n?JSON.parse(n):[]; return p.map(no=>({...no, isPinned: no.isPinned || false })); } catch(e){console.error("Error parsing notes:",e); return [];} }
+        function saveNotes(notes) { /* ... (Code from v1.0) ... */ localStorage.setItem('quickNotes',JSON.stringify(notes)); }
+        function formatTimestamp(timestamp) { /* ... (Code from v1.0) ... */ if(!timestamp)return ''; const d=new Date(timestamp); return `${d.toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'})}, ${d.toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'})}`; }
+        function displayNotes(listEl, searchEl, sortBy = noteSortPreference, term = '') { /* ... (Code from v1.3) ... */ if(!listEl||!searchEl){return;} let n=getNotes(); const s=term.toLowerCase().trim(); if(s){n=n.filter(no=>no.content.toLowerCase().includes(s));} n.sort((a,b)=>{if(a.isPinned!==b.isPinned){return b.isPinned-a.isPinned;} switch(sortBy){case 'oldest':return (a.createdAt||0)-(b.createdAt||0); case 'name_asc':return (a.content||'').localeCompare(b.content||''); case 'name_desc':return (b.content||'').localeCompare(a.content||''); case 'newest': default: return (b.modifiedAt||b.createdAt||0)-(a.modifiedAt||a.createdAt||0);}}); listEl.innerHTML=''; if(n.length===0){listEl.innerHTML=`<p class="empty-state-message">${s?'Không tìm thấy ghi chú nào khớp.':'Chưa có ghi chú nào.'}</p>`; return;} n.forEach((no, index)=>{const ne=document.createElement('div'); ne.dataset.noteId=no.id; const bg=index%2===0?'bg-white':'bg-gray-50'; ne.classList.add('note-item',bg,'flex','flex-col'); if(no.isPinned){ne.classList.add('pinned'); ne.classList.remove('bg-white','bg-gray-50'); ne.classList.add('bg-yellow-100');} if(no.isPinned){const pi=document.createElement('span'); pi.classList.add('pin-indicator'); pi.innerHTML=ICONS.pin_filled; ne.appendChild(pi);} const tr=document.createElement('div'); tr.classList.add('flex','justify-between','items-start','w-full','note-top-row'); const cc=document.createElement('div'); cc.classList.add('flex-grow','mr-2','note-content-container'); const ce=document.createElement('p'); ce.classList.add('note-content','text-gray-800'); ce.textContent=no.content; cc.appendChild(ce); const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex','items-center','note-button-container'); const pb=document.createElement('button'); pb.classList.add('action-button-icon','pin-icon-btn'); if(no.isPinned){pb.classList.add('pinned'); pb.innerHTML=ICONS.pin_filled; pb.setAttribute('aria-label','Bỏ ghim ghi chú');} else {pb.innerHTML=ICONS.pin; pb.setAttribute('aria-label','Ghim ghi chú');} pb.onclick=()=>toggleNotePin(no.id,listEl,searchEl); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa ghi chú'); eb.onclick=()=>toggleEdit(no.id,listEl,searchEl); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa ghi chú'); db.onclick=()=>deleteNote(no.id,listEl,searchEl); bc.appendChild(pb); bc.appendChild(eb); bc.appendChild(db); tr.appendChild(cc); tr.appendChild(bc); const ts=document.createElement('p'); ts.classList.add('note-timestamp','w-full','text-right'); const cr=formatTimestamp(no.createdAt); const md=formatTimestamp(no.modifiedAt); ts.textContent=md?`Sửa đổi: ${md}`:(cr?`Đã tạo: ${cr}`:''); ne.appendChild(tr); if(ts.textContent){ne.appendChild(ts);} listEl.appendChild(ne);}); }
+        function addNote(inputEl, searchEl, formContainer, showFormBtn) { /* ... (Code from v1.0) ... */ if(!inputEl||!searchEl||!formContainer||!showFormBtn)return; const c=inputEl.value.trim(); if(c){const n=getNotes(); const now=Date.now(); const nn={id:now,content:c,createdAt:now,modifiedAt:null,isPinned:false}; n.push(nn); saveNotes(n); inputEl.value=''; searchEl.value=''; formContainer.classList.add('hidden'); showFormBtn.classList.remove('hidden'); const cl=document.getElementById('notes-list'); if(cl){displayNotes(cl,searchEl, noteSortPreference);}} }
+        function deleteNote(id, listEl, searchEl) { /* ... (Code from v1.0) ... */ if(!window.confirm("Bạn chắc chắn xóa ghi chú này?"))return; let n=getNotes(); n=n.filter(no=>no.id!==id); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); }
+        function toggleEdit(id, listEl, searchEl) { /* ... (Code from v1.0) ... */ displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); const ne=listEl.querySelector(`[data-note-id='${id}']`); if(!ne)return; const cc=ne.querySelector('.note-content-container'); const bc=ne.querySelector('.note-button-container'); if(!cc||!bc){console.error("Could not find content/button container for note edit:",id); return;} const ns=getNotes(); const no=ns.find(n=>n.id===id); if(!no)return; cc.innerHTML=''; bc.innerHTML=''; const ei=document.createElement('textarea'); ei.classList.add('w-full','p-1','border','border-gray-300','rounded-md','focus:outline-none','focus:ring-1','focus:ring-blue-500','edit-textarea','note-content'); ei.value=no.content; cc.appendChild(ei); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveEdit(id,ei.value,listEl,searchEl); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); bc.appendChild(sb); bc.appendChild(cb); ne.classList.add('editing'); ei.focus(); }
+        function saveEdit(id, content, listEl, searchEl) { /* ... (Code from v1.0) ... */ const tc=content.trim(); if(!tc){displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); return;} let n=getNotes(); const idx=n.findIndex(no=>no.id===id); if(idx>-1){n[idx].content=tc; n[idx].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value);} else {console.error("Cannot find note to save:",id); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value);} }
+        function toggleNotePin(noteId, listEl, searchEl) { /* ... (Code from v1.0) ... */ let n=getNotes(); const i=n.findIndex(no=>no.id===noteId); if(i>-1){n[i].isPinned=!n[i].isPinned; n[i].modifiedAt=Date.now(); saveNotes(n); displayNotes(listEl,searchEl, noteSortPreference, searchEl.value); console.log(`Toggled pin note: ${noteId} to ${n[i].isPinned}`);} else {console.error("Cannot find note to pin:",noteId);} }
 
         // --- Goal Management Functions ---
         const GOALS_STORAGE_KEY = 'personalGoals';
@@ -421,103 +370,262 @@
         function toggleSkillEdit(skillId, skillsListElement) { /* ... (Code from v1.4) ... */ displaySkills(skillsListElement); const el=skillsListElement.querySelector(`[data-skill-id='${skillId}']`); if(!el)return; const s=getSkills(); const sk=s.find(i=>i.id===skillId); if(!sk)return; const ea=document.createElement('div'); ea.classList.add('skill-edit-area'); const nl=document.createElement('label'); nl.textContent="Tên Kỹ năng:"; const ni=document.createElement('input'); ni.type='text'; ni.value=sk.name; ni.required=true; ea.appendChild(nl); ea.appendChild(ni); const ll=document.createElement('label'); ll.textContent="Mức độ:"; ll.classList.add('mt-2'); const ls=document.createElement('select'); ls.id=`edit-skill-level-${skillId}`; ll.htmlFor=ls.id; ls.innerHTML=`<option value="" ${sk.level===''?'selected':''}>-- Chọn mức độ --</option><option value="Beginner" ${sk.level==='Beginner'?'selected':''}>Người mới bắt đầu</option><option value="Intermediate" ${sk.level==='Intermediate'?'selected':''}>Trung cấp</option><option value="Advanced" ${sk.level==='Advanced'?'selected':''}>Nâng cao</option><option value="Expert" ${sk.level==='Expert'?'selected':''}>Chuyên gia</option>`; ea.appendChild(ll); ea.appendChild(ls); const dsl=document.createElement('label'); dsl.textContent="Mô tả/Ghi chú:"; dsl.classList.add('mt-2'); const dst=document.createElement('textarea'); dst.rows='3'; dst.value=sk.description||''; ea.appendChild(dsl); ea.appendChild(dst); const ebc=document.createElement('div'); ebc.classList.add('flex','justify-end','mt-3'); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveSkillEdit(skillId,ni.value,ls.value,dst.value,skillsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displaySkills(skillsListElement); ebc.appendChild(sb); ebc.appendChild(cb); ea.appendChild(ebc); el.innerHTML=''; el.appendChild(ea); el.classList.add('editing'); ni.focus(); }
         function saveSkillEdit(skillId, newName, newLevel, newDescription, skillsListElement) { /* ... (Code from v1.4) ... */ const tn=newName.trim(); if(!tn){alert("Tên kỹ năng không được để trống!");return;} let s=getSkills(); const de=s.some(sk=>sk.id!==skillId&&sk.name.toLowerCase()===tn.toLowerCase()); if(de){alert(`Tên kỹ năng "${tn}" đã tồn tại! Vui lòng chọn tên khác.`);return;} const i=s.findIndex(sk=>sk.id===skillId); if(i>-1){s[i].name=tn; s[i].level=newLevel; s[i].description=newDescription.trim(); saveSkills(s); displaySkills(skillsListElement); console.log(`Saved edit for skill ID: ${skillId}`);} else {console.error("Could not find skill to save edit:",skillId); displaySkills(skillsListElement);} }
 
-        // --- Time Management (ToDo List & Pomodoro) Functions ---
+        // --- Time Management (ToDo List) Functions ---
         const TODOS_STORAGE_KEY = 'personalTodos';
-        function getTodos() { /* ... (Code from v2.0) ... */ const t=localStorage.getItem(TODOS_STORAGE_KEY); try { const p=t?JSON.parse(t):[]; return p.map(td=>({...td, completed:td.completed||false, priority: td.priority || 'Medium', dueDate: td.dueDate || null })); } catch(e){console.error("Error parsing todos:",e); return [];} }
+        function getTodos() { /* ... (Code from v1.9) ... */ const t=localStorage.getItem(TODOS_STORAGE_KEY); try { const p=t?JSON.parse(t):[]; return p.map(td=>({...td, completed:td.completed||false, priority: td.priority || 'Medium', dueDate: td.dueDate || null })); } catch(e){console.error("Error parsing todos:",e); return [];} } // Added default priority/dueDate
         function saveTodos(todos) { /* ... (Code from v1.9) ... */ localStorage.setItem(TODOS_STORAGE_KEY,JSON.stringify(todos)); }
-        function displayTodos(todoListElement, sortBy = todoSortPreference) { /* ... (Code from v2.0) ... */ if(!todoListElement){console.error("Todo list element needed");return;} let t=getTodos(); todoListElement.innerHTML=''; if(t.length===0){todoListElement.innerHTML='<p class="empty-state-message">Chưa có việc cần làm nào.</p>';return;} const po={High:1,Medium:2,Low:3}; t.sort((a,b)=>{if(a.completed!==b.completed){return a.completed-b.completed;} switch(sortBy){case 'priority_high_low':return (po[a.priority]||99)-(po[b.priority]||99); case 'due_date_asc':return (new Date(a.dueDate||'9999-12-31'))-(new Date(b.dueDate||'9999-12-31')); case 'newest':return (b.createdAt||0)-(a.createdAt||0); case 'oldest':return (a.createdAt||0)-(b.createdAt||0); case 'default': default: return (po[a.priority]||99)-(po[b.priority]||99)||(new Date(a.dueDate||'9999-12-31'))-(new Date(b.dueDate||'9999-12-31'))||(b.createdAt-a.createdAt);}}); t.forEach((td, index)=>{const te=document.createElement('div'); te.dataset.todoId=td.id; const bg=index%2===0?'bg-white':'bg-gray-50'; te.classList.add('todo-item',bg,'flex','flex-col','items-start'); if(td.completed){te.classList.add('completed'); te.classList.remove('bg-white','bg-gray-50');} const cr=document.createElement('div'); cr.classList.add('flex','items-center','w-full'); const ti=document.createElement('div'); ti.classList.add('todo-info'); const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=td.completed; cb.classList.add('todo-checkbox'); cb.onchange=()=>toggleTodoComplete(td.id,todoListElement); ti.appendChild(cb); const tx=document.createElement('span'); tx.classList.add('todo-text'); tx.textContent=td.text; ti.appendChild(tx); const bc=document.createElement('div'); bc.classList.add('flex-shrink-0','flex'); const eb=document.createElement('button'); eb.classList.add('action-button-icon','edit-icon-btn'); eb.innerHTML=ICONS.edit; eb.setAttribute('aria-label','Sửa công việc'); eb.onclick=()=>toggleTodoEdit(td.id,todoListElement); bc.appendChild(eb); const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa công việc'); db.onclick=()=>deleteTodo(td.id,todoListElement); bc.appendChild(db); cr.appendChild(ti); cr.appendChild(bc); te.appendChild(cr); if(!td.completed&&(td.priority||td.dueDate)){const dr=document.createElement('div'); dr.classList.add('todo-details','w-full'); if(td.priority){const pe=document.createElement('span'); pe.classList.add('todo-priority',`priority-${td.priority}`); pe.textContent=td.priority==='High'?'Cao':(td.priority==='Medium'?'Trung bình':'Thấp'); dr.appendChild(pe);} if(td.dueDate){const de=document.createElement('span'); const r=calculateDaysRemaining(td.dueDate); de.classList.add('todo-due-date'); if(r.class==='overdue'){de.classList.add('overdue');} de.textContent=`Hạn: ${formatDisplayDate(td.dueDate)} ${r.text?`(${r.text})`:''}`; dr.appendChild(de);} te.appendChild(dr);} todoListElement.appendChild(te);}); }
-        function addTodo(todoInputElement, prioritySelectElement, dueDateInputElement, todoListElement, formElement, showFormBtn) { /* ... (Code from v2.0) ... */ if(!todoInputElement||!prioritySelectElement||!dueDateInputElement||!todoListElement||!formElement||!showFormBtn){console.error("Missing args for addTodo");return;} const tt=todoInputElement.value.trim(); const tp=prioritySelectElement.value; const tdd=dueDateInputElement.value; if(tt){const t=getTodos(); const n=Date.now(); const nt={id:n,text:tt,completed:false,priority:tp,dueDate:tdd||null,createdAt:n}; t.push(nt); saveTodos(t); todoInputElement.value=''; prioritySelectElement.value='Medium'; dueDateInputElement.value=''; formElement.classList.add('hidden'); showFormBtn.classList.remove('hidden'); displayTodos(todoListElement, todoSortPreference); console.log("Added todo:",nt);} else {alert("Nội dung công việc không được để trống!");} }
-        function deleteTodo(todoId, todoListElement) { /* ... (Code from v1.9) ... */ if(!window.confirm("Bạn có chắc muốn xóa công việc này không?"))return; let t=getTodos(); t=t.filter(td=>td.id!==todoId); saveTodos(t); displayTodos(todoListElement, todoSortPreference); console.log("Deleted todo ID:",todoId); }
-        function toggleTodoComplete(todoId, todoListElement) { /* ... (Code from v1.9) ... */ let t=getTodos(); const i=t.findIndex(td=>td.id===todoId); if(i>-1){t[i].completed=!t[i].completed; saveTodos(t); displayTodos(todoListElement, todoSortPreference); console.log(`Toggled completion for todo ID: ${todoId} to ${t[i].completed}`);} else {console.error("Could not find todo to toggle:",todoId);} }
-        function toggleTodoEdit(todoId, todoListElement) { /* ... (Code from v2.0) ... */ displayTodos(todoListElement, todoSortPreference); const el=todoListElement.querySelector(`[data-todo-id='${todoId}']`); if(!el)return; const t=getTodos(); const td=t.find(i=>i.id===todoId); if(!td)return; const ea=document.createElement('div'); ea.classList.add('todo-edit-area'); const tl=document.createElement('label'); tl.textContent="Nội dung:"; const ti=document.createElement('input'); ti.type='text'; ti.value=td.text; ti.required=true; ea.appendChild(tl); ea.appendChild(ti); const pl=document.createElement('label'); pl.textContent="Ưu tiên:"; pl.classList.add('mt-2'); const ps=document.createElement('select'); ps.id=`edit-todo-priority-${todoId}`; pl.htmlFor=ps.id; ps.innerHTML=`<option value="High" ${td.priority==='High'?'selected':''}>Cao</option><option value="Medium" ${td.priority==='Medium'?'selected':''}>Trung bình</option><option value="Low" ${td.priority==='Low'?'selected':''}>Thấp</option>`; ea.appendChild(pl); ea.appendChild(ps); const dl=document.createElement('label'); dl.textContent="Hạn chót:"; dl.classList.add('mt-2'); const di=document.createElement('input'); di.type='date'; di.value=td.dueDate||''; ea.appendChild(dl); ea.appendChild(di); const ebc=document.createElement('div'); ebc.classList.add('flex','justify-end','mt-3'); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveTodoEdit(todoId,ti.value,ps.value,di.value,todoListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayTodos(todoListElement, todoSortPreference); ebc.appendChild(sb); ebc.appendChild(cb); ea.appendChild(ebc); el.innerHTML=''; el.appendChild(ea); el.classList.add('editing'); ti.focus(); }
-        function saveTodoEdit(todoId, newText, newPriority, newDueDate, todoListElement) { /* ... (Code from v2.0) ... */ const tt=newText.trim(); if(!tt){alert("Nội dung công việc không được để trống!");return;} let t=getTodos(); const i=t.findIndex(td=>td.id===todoId); if(i>-1){t[i].text=tt; t[i].priority=newPriority; t[i].dueDate=newDueDate||null; saveTodos(t); displayTodos(todoListElement, todoSortPreference); console.log(`Saved edit for todo ID: ${todoId}`);} else {console.error("Could not find todo to save edit:",todoId); displayTodos(todoListElement, todoSortPreference);} }
 
-        // --- *** NEW: Pomodoro Timer Functions *** ---
+        // *** UPDATED: displayTodos Function ***
+        function displayTodos(todoListElement, sortBy = todoSortPreference) { // Added sortBy
+            if (!todoListElement) { console.error("Todo list element needed"); return; }
+            let todos = getTodos(); // Use let
+            todoListElement.innerHTML = '';
 
-        // Format seconds into MM:SS
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        // Update the timer display on the page
-        function updateTimerDisplay() {
-            const timerDisplayElement = document.getElementById('timer-display');
-            const timerModeElement = document.getElementById('timer-mode');
-            if (timerDisplayElement && timerModeElement) {
-                timerDisplayElement.textContent = formatTime(timerSecondsRemaining);
-                timerModeElement.textContent = timerMode === 'work' ? 'Chế độ làm việc' : 'Nghỉ ngắn';
+            if (todos.length === 0) {
+                todoListElement.innerHTML = '<p class="empty-state-message">Chưa có việc cần làm nào.</p>';
+                return;
             }
-             // Update page title
-            if (timerState === 'running') {
-                document.title = `${formatTime(timerSecondsRemaining)} - ${timerMode === 'work' ? 'Làm việc' : 'Nghỉ'} | Ứng dụng Cá nhân v2.1`;
-            } else {
-                 // Reset title if timer is not running or module changes
-                 let baseTitle = "Ứng dụng Phát triển Cá nhân v2.1";
-                 let moduleTitle = "";
-                 if (currentModule === 'notes') moduleTitle = " - Ghi Chú";
-                 else if (currentModule === 'goals') moduleTitle = " - Mục tiêu";
-                 else if (currentModule === 'habits') moduleTitle = " - Thói quen";
-                 else if (currentModule === 'skills') moduleTitle = " - Kỹ năng";
-                 else if (currentModule === 'time') moduleTitle = " - Thời gian";
-                 document.title = baseTitle + moduleTitle;
-            }
-        }
 
-        // Function called every second by the interval
-        function tick() {
-            if (timerSecondsRemaining <= 0) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-                // Switch mode
-                if (timerMode === 'work') {
-                    timerMode = 'shortBreak';
-                    timerSecondsRemaining = BREAK_DURATION;
-                    alert("Đã hết giờ làm việc! Bắt đầu nghỉ ngắn."); // Simple alert notification
-                } else {
-                    timerMode = 'work';
-                    timerSecondsRemaining = WORK_DURATION;
-                    alert("Đã hết giờ nghỉ! Quay lại làm việc."); // Simple alert notification
+            // Define priority order for sorting
+            const priorityOrder = { High: 1, Medium: 2, Low: 3 };
+
+            // Sort based on preference
+            todos.sort((a, b) => {
+                // Always keep incomplete tasks first
+                if (a.completed !== b.completed) {
+                    return a.completed - b.completed; // false (0) comes before true (1)
                 }
-                timerState = 'stopped';
-                updateTimerDisplay();
+                // If completion status is the same, apply selected sort order
+                switch (sortBy) {
+                    case 'priority_high_low':
+                        return (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99); // Lower number = higher priority
+                    case 'due_date_asc':
+                        return (new Date(a.dueDate || '9999-12-31')) - (new Date(b.dueDate || '9999-12-31'));
+                    case 'newest':
+                         return (b.createdAt || 0) - (a.createdAt || 0);
+                    case 'oldest':
+                         return (a.createdAt || 0) - (b.createdAt || 0);
+                    case 'default':
+                    default:
+                        // Default: Incomplete -> Priority High-Low -> Due Date Asc -> Created Desc
+                        return (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99) ||
+                               (new Date(a.dueDate || '9999-12-31')) - (new Date(b.dueDate || '9999-12-31')) ||
+                               (b.createdAt - a.createdAt);
+                }
+            });
+
+
+            todos.forEach((todo, index) => {
+                const todoElement = document.createElement('div');
+                todoElement.dataset.todoId = todo.id;
+                const bgColor = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                todoElement.classList.add('todo-item', bgColor, 'flex', 'flex-col', 'items-start'); // Use flex-col
+                if (todo.completed) {
+                    todoElement.classList.add('completed');
+                    todoElement.classList.remove('bg-white', 'bg-gray-50');
+                }
+
+                // Content Row (Checkbox, Text, Buttons)
+                const contentRow = document.createElement('div');
+                contentRow.classList.add('flex', 'items-center', 'w-full'); // Ensure full width
+
+                const todoInfo = document.createElement('div');
+                todoInfo.classList.add('todo-info'); // Container for checkbox and text
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.checked = todo.completed;
+                checkbox.classList.add('todo-checkbox');
+                checkbox.onchange = () => toggleTodoComplete(todo.id, todoListElement);
+                todoInfo.appendChild(checkbox);
+
+                const textElement = document.createElement('span');
+                textElement.classList.add('todo-text');
+                textElement.textContent = todo.text;
+                todoInfo.appendChild(textElement);
+
+                const buttonContainer = document.createElement('div');
+                buttonContainer.classList.add('flex-shrink-0', 'flex');
+
+                // Edit Button
+                const editButton = document.createElement('button');
+                editButton.classList.add('action-button-icon', 'edit-icon-btn');
+                editButton.innerHTML = ICONS.edit;
+                editButton.setAttribute('aria-label', 'Sửa công việc');
+                editButton.onclick = () => toggleTodoEdit(todo.id, todoListElement); // Call toggle edit
+                buttonContainer.appendChild(editButton);
+
+                // Delete Button
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('action-button-icon', 'delete-icon-btn');
+                deleteButton.innerHTML = ICONS.delete;
+                deleteButton.setAttribute('aria-label', 'Xóa công việc');
+                deleteButton.onclick = () => deleteTodo(todo.id, todoListElement);
+                buttonContainer.appendChild(deleteButton);
+
+                contentRow.appendChild(todoInfo);
+                contentRow.appendChild(buttonContainer);
+                todoElement.appendChild(contentRow);
+
+                // Details Row (Priority, Due Date) - Only if not completed
+                if (!todo.completed && (todo.priority || todo.dueDate)) {
+                    const detailsRow = document.createElement('div');
+                    detailsRow.classList.add('todo-details', 'w-full');
+
+                    // Priority Tag
+                    if (todo.priority) {
+                        const priorityElement = document.createElement('span');
+                        priorityElement.classList.add('todo-priority', `priority-${todo.priority}`);
+                        priorityElement.textContent = todo.priority === 'High' ? 'Cao' : (todo.priority === 'Medium' ? 'Trung bình' : 'Thấp');
+                        detailsRow.appendChild(priorityElement);
+                    }
+
+                    // Due Date Info
+                    if (todo.dueDate) {
+                        const dueDateElement = document.createElement('span');
+                        const remaining = calculateDaysRemaining(todo.dueDate); // Use goal's helper
+                        dueDateElement.classList.add('todo-due-date');
+                        if (remaining.class === 'overdue') {
+                            dueDateElement.classList.add('overdue');
+                        }
+                        dueDateElement.textContent = `Hạn: ${formatDisplayDate(todo.dueDate)} ${remaining.text ? `(${remaining.text})` : ''}`;
+                        detailsRow.appendChild(dueDateElement);
+                    }
+                    todoElement.appendChild(detailsRow);
+                }
+
+                todoListElement.appendChild(todoElement);
+            });
+        }
+
+        // *** UPDATED: addTodo Function ***
+        function addTodo(todoInputElement, prioritySelectElement, dueDateInputElement, todoListElement, formElement, showFormBtn) {
+             if (!todoInputElement || !prioritySelectElement || !dueDateInputElement || !todoListElement || !formElement || !showFormBtn) {
+                 console.error("Missing arguments for addTodo");
+                 return;
+             }
+             const todoText = todoInputElement.value.trim();
+             const todoPriority = prioritySelectElement.value;
+             const todoDueDate = dueDateInputElement.value;
+
+             if (todoText) {
+                 const todos = getTodos();
+                 const now = Date.now();
+                 const newTodo = {
+                     id: now,
+                     text: todoText,
+                     completed: false,
+                     priority: todoPriority, // Save priority
+                     dueDate: todoDueDate || null, // Save due date
+                     createdAt: now
+                 };
+                 todos.push(newTodo);
+                 saveTodos(todos);
+
+                 // Clear inputs, hide form, show button
+                 todoInputElement.value = '';
+                 prioritySelectElement.value = 'Medium'; // Reset priority
+                 dueDateInputElement.value = ''; // Reset due date
+                 formElement.classList.add('hidden');
+                 showFormBtn.classList.remove('hidden');
+
+                 displayTodos(todoListElement, todoSortPreference); // Refresh list with current sort
+                 console.log("Added todo:", newTodo);
+             } else {
+                 alert("Nội dung công việc không được để trống!");
+             }
+        }
+
+        function deleteTodo(todoId, todoListElement) { /* ... (Code from v1.9) ... */ if(!window.confirm("Bạn có chắc muốn xóa công việc này không?"))return; let t=getTodos(); t=t.filter(td=>td.id!==todoId); saveTodos(t); displayTodos(todoListElement, todoSortPreference); console.log("Deleted todo ID:",todoId); } // Pass sort pref
+        function toggleTodoComplete(todoId, todoListElement) { /* ... (Code from v1.9) ... */ let t=getTodos(); const i=t.findIndex(td=>td.id===todoId); if(i>-1){t[i].completed=!t[i].completed; saveTodos(t); displayTodos(todoListElement, todoSortPreference); console.log(`Toggled completion for todo ID: ${todoId} to ${t[i].completed}`);} else {console.error("Could not find todo to toggle:",todoId);} } // Pass sort pref
+
+        // *** NEW: toggleTodoEdit Function ***
+        function toggleTodoEdit(todoId, todoListElement) {
+            displayTodos(todoListElement, todoSortPreference); // Refresh to cancel other edits
+
+            const todoElement = todoListElement.querySelector(`[data-todo-id='${todoId}']`);
+            if (!todoElement) return;
+
+            const todos = getTodos();
+            const todo = todos.find(t => t.id === todoId);
+            if (!todo) return;
+
+            // --- Create Edit Form ---
+            const editArea = document.createElement('div');
+            editArea.classList.add('todo-edit-area');
+
+            // Text Input
+            const textLabel = document.createElement('label'); textLabel.textContent="Nội dung:";
+            const textInput = document.createElement('input'); textInput.type='text'; textInput.value=todo.text; textInput.required=true;
+            editArea.appendChild(textLabel); editArea.appendChild(textInput);
+
+            // Priority Select
+            const priorityLabel = document.createElement('label'); priorityLabel.textContent="Ưu tiên:"; priorityLabel.classList.add('mt-2');
+            const prioritySelect = document.createElement('select'); prioritySelect.id=`edit-todo-priority-${todoId}`;
+            priorityLabel.htmlFor = prioritySelect.id;
+            prioritySelect.innerHTML = `
+                <option value="High" ${todo.priority === 'High' ? 'selected' : ''}>Cao</option>
+                <option value="Medium" ${todo.priority === 'Medium' ? 'selected' : ''}>Trung bình</option>
+                <option value="Low" ${todo.priority === 'Low' ? 'selected' : ''}>Thấp</option>
+            `;
+            editArea.appendChild(priorityLabel); editArea.appendChild(prioritySelect);
+
+            // Due Date Input
+            const dateLabel = document.createElement('label'); dateLabel.textContent="Hạn chót:"; dateLabel.classList.add('mt-2');
+            const dateInput = document.createElement('input'); dateInput.type='date'; dateInput.value=todo.dueDate || '';
+            editArea.appendChild(dateLabel); editArea.appendChild(dateInput);
+
+             // --- Create Save/Cancel Buttons ---
+             const editButtonContainer = document.createElement('div');
+             editButtonContainer.classList.add('flex', 'justify-end', 'mt-3');
+
+             const saveButton = document.createElement('button');
+             saveButton.classList.add('action-button-icon', 'save-icon-btn');
+             saveButton.innerHTML = ICONS.save;
+             saveButton.setAttribute('aria-label', 'Lưu thay đổi');
+             saveButton.onclick = () => saveTodoEdit(todoId, textInput.value, prioritySelect.value, dateInput.value, todoListElement);
+
+             const cancelButton = document.createElement('button');
+             cancelButton.classList.add('action-button-icon', 'cancel-icon-btn');
+             cancelButton.innerHTML = ICONS.cancel;
+             cancelButton.setAttribute('aria-label', 'Hủy bỏ');
+             cancelButton.onclick = () => displayTodos(todoListElement, todoSortPreference);
+
+             editButtonContainer.appendChild(saveButton);
+             editButtonContainer.appendChild(cancelButton);
+             editArea.appendChild(editButtonContainer);
+
+            // --- Replace Todo Content with Edit Form ---
+            todoElement.innerHTML = ''; // Clear existing content
+            todoElement.appendChild(editArea); // Add the edit form
+            todoElement.classList.add('editing');
+            textInput.focus();
+        }
+
+        // *** NEW: saveTodoEdit Function ***
+        function saveTodoEdit(todoId, newText, newPriority, newDueDate, todoListElement) {
+            const trimmedText = newText.trim();
+            if (!trimmedText) {
+                alert("Nội dung công việc không được để trống!");
+                return;
+            }
+
+            let todos = getTodos();
+            const todoIndex = todos.findIndex(todo => todo.id === todoId);
+
+            if (todoIndex > -1) {
+                todos[todoIndex].text = trimmedText;
+                todos[todoIndex].priority = newPriority;
+                todos[todoIndex].dueDate = newDueDate || null;
+                // Optionally add modifiedAt
+                // todos[todoIndex].modifiedAt = Date.now();
+                saveTodos(todos);
+                displayTodos(todoListElement, todoSortPreference); // Refresh list
+                console.log(`Saved edit for todo ID: ${todoId}`);
             } else {
-                timerSecondsRemaining--;
-                updateTimerDisplay();
+                console.error("Could not find todo to save edit:", todoId);
+                displayTodos(todoListElement, todoSortPreference);
             }
-        }
-
-        // Start the timer
-        function startPomodoro() {
-            if (timerState !== 'running') {
-                timerState = 'running';
-                // Clear any existing interval before starting a new one
-                if (timerInterval) clearInterval(timerInterval);
-                timerInterval = setInterval(tick, 1000); // Run tick every second
-                console.log("Timer started in mode:", timerMode);
-            }
-        }
-
-        // Pause the timer
-        function pausePomodoro() {
-            if (timerState === 'running') {
-                clearInterval(timerInterval);
-                timerInterval = null;
-                timerState = 'paused';
-                console.log("Timer paused.");
-                updateTimerDisplay(); // Update title when paused
-            }
-        }
-
-        // Reset the timer to the current mode's default duration
-        function resetPomodoro() {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            timerState = 'stopped';
-            timerSecondsRemaining = (timerMode === 'work') ? WORK_DURATION : BREAK_DURATION;
-            updateTimerDisplay();
-            console.log("Timer reset.");
         }
 
 
@@ -535,7 +643,7 @@
         });
 
         document.addEventListener('DOMContentLoaded', renderAppContent);
-        console.log("Personal App v2.1 with Pomodoro Timer!");
+        console.log("Personal App v2.0 with Enhanced ToDo List!");
 
     </script>
 
