@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ứng dụng Phát triển Cá nhân v2.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    {/* --- Added Tone.js CDN --- */}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -137,6 +139,13 @@
         .timer-controls button#pause-timer-btn:hover { background-color: #fbbf24; }
         .timer-controls button#reset-timer-btn { background-color: #f87171; color: #7f1d1d; }
         .timer-controls button#reset-timer-btn:hover { background-color: #ef4444; }
+        /* Pomodoro Settings */
+        .pomodoro-settings { margin-top: 1rem; padding-top: 1rem; border-top: 1px dashed #9ca3af; }
+        .pomodoro-settings label { display: block; font-size: 0.8rem; font-weight: 500; margin-bottom: 0.2rem; color: #4b5563; }
+        .pomodoro-settings input[type="number"] { width: 60px; padding: 0.25rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; margin-right: 0.3rem; text-align: right; }
+        .pomodoro-settings button { background-color: #60a5fa; color: white; font-size: 0.8rem; padding: 0.3rem 0.8rem; border-radius: 0.25rem; }
+        .pomodoro-settings button:hover { background-color: #3b82f6; }
+
 
     </style>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -199,12 +208,21 @@
         let calendarDate = new Date();
         let skillSortPreference = localStorage.getItem('skillSortPref') || 'name_asc';
         let todoSortPreference = localStorage.getItem('todoSortPref') || 'default';
-        // Pomodoro Timer State
+
+        // Pomodoro Timer State & Settings
         let timerInterval = null;
-        let timerMode = 'work'; // 'work', 'shortBreak'
-        const WORK_DURATION = 25 * 60; // 25 minutes
-        const BREAK_DURATION = 5 * 60; // 5 minutes
-        let timerSecondsRemaining = WORK_DURATION;
+        let timerMode = 'work'; // 'work', 'shortBreak', 'longBreak'
+        let pomodoroCount = 0; // Count completed work sessions
+        const POMODOROS_BEFORE_LONG_BREAK = 4;
+        // Default durations (in minutes) - will be loaded from localStorage
+        let WORK_DURATION_MIN = 25;
+        let SHORT_BREAK_DURATION_MIN = 5;
+        let LONG_BREAK_DURATION_MIN = 15;
+        // Durations in seconds (calculated after loading settings)
+        let WORK_DURATION_SEC = WORK_DURATION_MIN * 60;
+        let SHORT_BREAK_DURATION_SEC = SHORT_BREAK_DURATION_MIN * 60;
+        let LONG_BREAK_DURATION_SEC = LONG_BREAK_DURATION_MIN * 60;
+        let timerSecondsRemaining = WORK_DURATION_SEC;
         let timerState = 'stopped'; // 'running', 'paused', 'stopped'
 
         // --- SVG Icons ---
@@ -215,126 +233,12 @@
         function buildGoalsUI() { /* ... (Code from v1.3) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><button id="show-goal-form-btn" class="add-new-button" style="background-color: #22c55e;">Tạo mục tiêu mới</button><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div class="flex justify-end"><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Mục tiêu</button><button id="cancel-add-goal-btn" type="button" class="form-cancel-button">Hủy</button></div></form><div class="flex justify-end mb-4"><div class="flex items-center space-x-2"><label for="goal-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label><select id="goal-sort-select" class="sort-select"><option value="default" ${goalSortPreference==='default'?'selected':''}>Mặc định</option><option value="due_date_asc" ${goalSortPreference==='due_date_asc'?'selected':''}>Hạn gần nhất</option><option value="due_date_desc" ${goalSortPreference==='due_date_desc'?'selected':''}>Hạn xa nhất</option><option value="name_asc" ${goalSortPreference==='name_asc'?'selected':''}>Tên (A-Z)</option><option value="name_desc" ${goalSortPreference==='name_desc'?'selected':''}>Tên (Z-A)</option><option value="newest" ${goalSortPreference==='newest'?'selected':''}>Ngày tạo mới nhất</option><option value="oldest" ${goalSortPreference==='oldest'?'selected':''}>Ngày tạo cũ nhất</option></select></div></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list"></div>`; const sgfb=document.getElementById('show-goal-form-btn'); const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const cagb=document.getElementById('cancel-add-goal-btn'); const gss=document.getElementById('goal-sort-select'); const gl=document.getElementById('goals-list'); sgfb.addEventListener('click',()=>{agf.classList.remove('hidden'); sgfb.classList.add('hidden'); gi.focus();}); cagb.addEventListener('click',()=>{agf.classList.add('hidden'); sgfb.classList.remove('hidden'); gi.value=''; gdi.value=''; gddi.value='';}); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl,agf,sgfb);}); gss.addEventListener('change',(e)=>{goalSortPreference=e.target.value; localStorage.setItem('goalSortPref',goalSortPreference); displayGoals(gl,goalSortPreference);}); displayGoals(gl,goalSortPreference); }
         function buildHabitsUI() { /* ... (Code from v1.0) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} const s=calculateHabitStats(); appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><div id="habit-stats-area" class="habit-stats">${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday} / ${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}</div><button id="show-habit-form-btn" class="add-new-button" style="background-color: #a855f7;">Tạo thói quen mới</button><form id="add-habit-form" class="mb-6 flex items-center space-x-2 hidden"><input type="text" id="habit-input" placeholder="Nhập thói quen mới..." required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-habit-btn" type="button" class="form-cancel-button !ml-2 !py-2 !px-4">Hủy</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list"></div>`; const shfb=document.getElementById('show-habit-form-btn'); const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const cahb=document.getElementById('cancel-add-habit-btn'); const hl=document.getElementById('habits-list'); shfb.addEventListener('click',()=>{ahf.classList.remove('hidden'); shfb.classList.add('hidden'); hi.focus();}); cahb.addEventListener('click',()=>{ahf.classList.add('hidden'); shfb.classList.remove('hidden'); hi.value='';}); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl,ahf,shfb);}); displayHabits(hl); }
         function buildSkillsUI() { /* ... (Code from v1.4) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Quản lý Kỹ năng</h2><button id="show-skill-form-btn" class="add-new-button" style="background-color: #f59e0b;">Thêm kỹ năng mới</button><form id="add-skill-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="skill-input" class="block text-sm font-medium text-gray-700 mb-1">Tên kỹ năng:</label><input type="text" id="skill-input" placeholder="Ví dụ: Lập trình Python" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"></div><div><label for="skill-level-select" class="block text-sm font-medium text-gray-700 mb-1">Mức độ (tùy chọn):</label><select id="skill-level-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"><option value="">-- Chọn mức độ --</option><option value="Beginner">Người mới bắt đầu</option><option value="Intermediate">Trung cấp</option><option value="Advanced">Nâng cao</option><option value="Expert">Chuyên gia</option></select></div><div><label for="skill-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả/Ghi chú (tùy chọn):</label><textarea id="skill-desc-input" placeholder="Thêm mô tả, tài liệu tham khảo,..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"></textarea></div><div class="flex justify-end"><button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Kỹ năng</button><button id="cancel-add-skill-btn" type="button" class="form-cancel-button">Hủy</button></div></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Kỹ năng</h3><div id="skills-list"></div>`; const ssfb=document.getElementById('show-skill-form-btn'); const asf=document.getElementById('add-skill-form'); const ski=document.getElementById('skill-input'); const sls=document.getElementById('skill-level-select'); const sdi=document.getElementById('skill-desc-input'); const casb=document.getElementById('cancel-add-skill-btn'); const sl=document.getElementById('skills-list'); ssfb.addEventListener('click',()=>{asf.classList.remove('hidden'); ssfb.classList.add('hidden'); ski.focus();}); casb.addEventListener('click',()=>{asf.classList.add('hidden'); ssfb.classList.remove('hidden'); ski.value=''; sls.value=''; sdi.value='';}); asf.addEventListener('submit',(e)=>{e.preventDefault();addSkill(ski,sls,sdi,sl,asf,ssfb);}); displaySkills(sl); }
-
-        // *** UPDATED: buildTimeManagementUI Function ***
-        function buildTimeManagementUI() {
-            if (!appContent.classList.contains('app-module-container')) {
-                 appContent.className = 'app-module-container';
-            }
-            appContent.innerHTML = `
-                <h2 class="text-xl font-semibold mb-4">Quản lý Thời gian</h2>
-
-                {/* --- Pomodoro Timer Section --- */}
-                <div class="pomodoro-timer">
-                    <span id="timer-mode" class="text-sm font-medium text-teal-800">Chế độ làm việc</span>
-                    <span id="timer-display" class="text-5xl font-bold text-teal-700">25:00</span>
-                    <div class="timer-controls space-x-2">
-                        <button id="start-timer-btn">Bắt đầu</button>
-                        <button id="pause-timer-btn">Tạm dừng</button>
-                        <button id="reset-timer-btn">Đặt lại</button>
-                    </div>
-                </div>
-
-                {/* --- ToDo List Section --- */}
-                <div class="mt-8">
-                    <h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Việc cần làm</h3>
-                    <button id="show-todo-form-btn" class="add-new-button" style="background-color: #14b8a6;">Thêm việc mới</button>
-                    <form id="add-todo-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden">
-                        <div>
-                            <label for="todo-input" class="block text-sm font-medium text-gray-700 mb-1">Nội dung công việc:</label>
-                            <input type="text" id="todo-input" placeholder="Ví dụ: Hoàn thành báo cáo tuần" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
-                        </div>
-                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label for="todo-priority-select" class="block text-sm font-medium text-gray-700 mb-1">Ưu tiên:</label>
-                                <select id="todo-priority-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
-                                    <option value="Medium" selected>Trung bình</option>
-                                    <option value="High">Cao</option>
-                                    <option value="Low">Thấp</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="todo-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label>
-                                <input type="date" id="todo-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
-                            </div>
-                         </div>
-                        <div class="flex justify-end">
-                            <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">
-                                Thêm
-                            </button>
-                            <button id="cancel-add-todo-btn" type="button" class="form-cancel-button">Hủy</button>
-                        </div>
-                    </form>
-
-                    {/* Sort Controls */}
-                     <div class="flex justify-end mb-4">
-                         <div class="flex items-center space-x-2">
-                             <label for="todo-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label>
-                             <select id="todo-sort-select" class="sort-select">
-                                 <option value="default" ${todoSortPreference === 'default' ? 'selected' : ''}>Mặc định</option>
-                                 <option value="priority_high_low" ${todoSortPreference === 'priority_high_low' ? 'selected' : ''}>Ưu tiên (Cao-Thấp)</option>
-                                 <option value="due_date_asc" ${todoSortPreference === 'due_date_asc' ? 'selected' : ''}>Hạn gần nhất</option>
-                                 <option value="newest" ${todoSortPreference === 'newest' ? 'selected' : ''}>Mới nhất</option>
-                                 <option value="oldest" ${todoSortPreference === 'oldest' ? 'selected' : ''}>Cũ nhất</option>
-                             </select>
-                        </div>
-                    </div>
-
-                    <div id="todo-list"></div>
-                </div>
-            `;
-
-            // Get references for ToDo
-            const showTodoFormBtn = document.getElementById('show-todo-form-btn');
-            const addTodoForm = document.getElementById('add-todo-form');
-            const todoInput = document.getElementById('todo-input');
-            const todoPrioritySelect = document.getElementById('todo-priority-select');
-            const todoDueDateInput = document.getElementById('todo-due-date-input');
-            const cancelAddTodoBtn = document.getElementById('cancel-add-todo-btn');
-            const todoSortSelect = document.getElementById('todo-sort-select');
-            const todoList = document.getElementById('todo-list');
-
-            // Get references for Pomodoro
-            const timerDisplay = document.getElementById('timer-display');
-            const timerModeDisplay = document.getElementById('timer-mode');
-            const startTimerBtn = document.getElementById('start-timer-btn');
-            const pauseTimerBtn = document.getElementById('pause-timer-btn');
-            const resetTimerBtn = document.getElementById('reset-timer-btn');
-
-            // Event listeners for ToDo
-            showTodoFormBtn.addEventListener('click', () => { addTodoForm.classList.remove('hidden'); showTodoFormBtn.classList.add('hidden'); todoInput.focus(); });
-            cancelAddTodoBtn.addEventListener('click', () => {
-                addTodoForm.classList.add('hidden');
-                showTodoFormBtn.classList.remove('hidden');
-                todoInput.value = '';
-                todoPrioritySelect.value = 'Medium';
-                todoDueDateInput.value = '';
-            });
-            addTodoForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                addTodo(todoInput, todoPrioritySelect, todoDueDateInput, todoList, addTodoForm, showTodoFormBtn);
-            });
-             todoSortSelect.addEventListener('change', (e) => {
-                todoSortPreference = e.target.value;
-                localStorage.setItem('todoSortPref', todoSortPreference);
-                displayTodos(todoList, todoSortPreference);
-            });
-
-            // Event listeners for Pomodoro
-            startTimerBtn.addEventListener('click', startPomodoro);
-            pauseTimerBtn.addEventListener('click', pausePomodoro);
-            resetTimerBtn.addEventListener('click', resetPomodoro);
-
-            // Initial display
-            updateTimerDisplay(); // Show initial time
-            displayTodos(todoList, todoSortPreference);
-        }
-
+        function buildTimeManagementUI() { /* ... (Code from v1.9) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Danh sách Việc cần làm</h2><button id="show-todo-form-btn" class="add-new-button" style="background-color: #14b8a6;">Thêm việc mới</button><form id="add-todo-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="todo-input" class="block text-sm font-medium text-gray-700 mb-1">Nội dung công việc:</label><input type="text" id="todo-input" placeholder="Ví dụ: Hoàn thành báo cáo tuần" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"></div><div class="flex justify-end"><button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-todo-btn" type="button" class="form-cancel-button">Hủy</button></div></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Công việc</h3><div id="todo-list"></div>`; const stfb=document.getElementById('show-todo-form-btn'); const atf=document.getElementById('add-todo-form'); const ti=document.getElementById('todo-input'); const catb=document.getElementById('cancel-add-todo-btn'); const tl=document.getElementById('todo-list'); stfb.addEventListener('click',()=>{atf.classList.remove('hidden'); stfb.classList.add('hidden'); ti.focus();}); catb.addEventListener('click',()=>{atf.classList.add('hidden'); stfb.classList.remove('hidden'); ti.value='';}); atf.addEventListener('submit',(e)=>{e.preventDefault();addTodo(ti,tl,atf,stfb);}); displayTodos(tl); }
 
         // --- Core Application Logic ---
         function renderAppContent() {
             console.log(`Rendering module: ${currentModule}`);
-            let baseTitle = "Ứng dụng Phát triển Cá nhân v2.0"; // Updated version
+            let baseTitle = "Ứng dụng Phát triển Cá nhân v2.1"; // Updated version
             let moduleTitle = "";
             if (currentModule === 'notes') moduleTitle = " - Ghi Chú";
             else if (currentModule === 'goals') moduleTitle = " - Mục tiêu";
@@ -432,92 +336,94 @@
         function toggleTodoEdit(todoId, todoListElement) { /* ... (Code from v2.0) ... */ displayTodos(todoListElement, todoSortPreference); const el=todoListElement.querySelector(`[data-todo-id='${todoId}']`); if(!el)return; const t=getTodos(); const td=t.find(i=>i.id===todoId); if(!td)return; const ea=document.createElement('div'); ea.classList.add('todo-edit-area'); const tl=document.createElement('label'); tl.textContent="Nội dung:"; const ti=document.createElement('input'); ti.type='text'; ti.value=td.text; ti.required=true; ea.appendChild(tl); ea.appendChild(ti); const pl=document.createElement('label'); pl.textContent="Ưu tiên:"; pl.classList.add('mt-2'); const ps=document.createElement('select'); ps.id=`edit-todo-priority-${todoId}`; pl.htmlFor=ps.id; ps.innerHTML=`<option value="High" ${td.priority==='High'?'selected':''}>Cao</option><option value="Medium" ${td.priority==='Medium'?'selected':''}>Trung bình</option><option value="Low" ${td.priority==='Low'?'selected':''}>Thấp</option>`; ea.appendChild(pl); ea.appendChild(ps); const dl=document.createElement('label'); dl.textContent="Hạn chót:"; dl.classList.add('mt-2'); const di=document.createElement('input'); di.type='date'; di.value=td.dueDate||''; ea.appendChild(dl); ea.appendChild(di); const ebc=document.createElement('div'); ebc.classList.add('flex','justify-end','mt-3'); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveTodoEdit(todoId,ti.value,ps.value,di.value,todoListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displayTodos(todoListElement, todoSortPreference); ebc.appendChild(sb); ebc.appendChild(cb); ea.appendChild(ebc); el.innerHTML=''; el.appendChild(ea); el.classList.add('editing'); ti.focus(); }
         function saveTodoEdit(todoId, newText, newPriority, newDueDate, todoListElement) { /* ... (Code from v2.0) ... */ const tt=newText.trim(); if(!tt){alert("Nội dung công việc không được để trống!");return;} let t=getTodos(); const i=t.findIndex(td=>td.id===todoId); if(i>-1){t[i].text=tt; t[i].priority=newPriority; t[i].dueDate=newDueDate||null; saveTodos(t); displayTodos(todoListElement, todoSortPreference); console.log(`Saved edit for todo ID: ${todoId}`);} else {console.error("Could not find todo to save edit:",todoId); displayTodos(todoListElement, todoSortPreference);} }
 
-        // --- *** NEW: Pomodoro Timer Functions *** ---
-
-        // Format seconds into MM:SS
-        function formatTime(seconds) {
-            const mins = Math.floor(seconds / 60);
-            const secs = seconds % 60;
-            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-        }
-
-        // Update the timer display on the page
-        function updateTimerDisplay() {
-            const timerDisplayElement = document.getElementById('timer-display');
-            const timerModeElement = document.getElementById('timer-mode');
-            if (timerDisplayElement && timerModeElement) {
-                timerDisplayElement.textContent = formatTime(timerSecondsRemaining);
-                timerModeElement.textContent = timerMode === 'work' ? 'Chế độ làm việc' : 'Nghỉ ngắn';
+        // --- Pomodoro Timer Functions ---
+        /* ... (Functions from v2.1: formatTime, updateTimerDisplay, tick, startPomodoro, pausePomodoro, resetPomodoro) ... */
+        function formatTime(seconds) { const m=Math.floor(seconds/60); const s=seconds%60; return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
+        function updateTimerDisplay() { const td=document.getElementById('timer-display'); const tm=document.getElementById('timer-mode'); if(td&&tm){ td.textContent=formatTime(timerSecondsRemaining); tm.textContent=timerMode==='work'?'Chế độ làm việc':(timerMode==='shortBreak'?'Nghỉ ngắn':'Nghỉ dài'); } if(timerState==='running'){ document.title=`${formatTime(timerSecondsRemaining)} - ${timerMode==='work'?'Làm việc':(timerMode==='shortBreak'?'Nghỉ ngắn':'Nghỉ dài')} | Ứng dụng Cá nhân v2.2`; } else { let bt="Ứng dụng Phát triển Cá nhân v2.2"; let mt=""; if(currentModule==='notes')mt=" - Ghi Chú"; else if(currentModule==='goals')mt=" - Mục tiêu"; else if(currentModule==='habits')mt=" - Thói quen"; else if(currentModule==='skills')mt=" - Kỹ năng"; else if(currentModule==='time')mt=" - Thời gian"; document.title=bt+mt; } }
+        function tick() { if(timerSecondsRemaining<=0){ clearInterval(timerInterval); timerInterval=null; playNotificationSound(); if(timerMode==='work'){ pomodoroCount++; if(pomodoroCount%POMODOROS_BEFORE_LONG_BREAK===0){ timerMode='longBreak'; timerSecondsRemaining=LONG_BREAK_DURATION_SEC; alert("Hoàn thành 4 phiên làm việc! Bắt đầu nghỉ dài."); } else { timerMode='shortBreak'; timerSecondsRemaining=SHORT_BREAK_DURATION_SEC; alert("Đã hết giờ làm việc! Bắt đầu nghỉ ngắn."); } } else { timerMode='work'; timerSecondsRemaining=WORK_DURATION_SEC; alert("Đã hết giờ nghỉ! Quay lại làm việc."); } timerState='stopped'; updateTimerDisplay(); } else { timerSecondsRemaining--; updateTimerDisplay(); } }
+        function startPomodoro() { if(timerState!=='running'){ timerState='running'; if(timerInterval)clearInterval(timerInterval); timerInterval=setInterval(tick,1000); console.log("Timer started in mode:",timerMode); } }
+        function pausePomodoro() { if(timerState==='running'){ clearInterval(timerInterval); timerInterval=null; timerState='paused'; console.log("Timer paused."); updateTimerDisplay(); } }
+        function resetPomodoro() { clearInterval(timerInterval); timerInterval=null; timerState='stopped'; if(timerMode==='work'){ timerSecondsRemaining=WORK_DURATION_SEC; } else if(timerMode==='shortBreak'){ timerSecondsRemaining=SHORT_BREAK_DURATION_SEC; } else { timerSecondsRemaining=LONG_BREAK_DURATION_SEC; } updateTimerDisplay(); console.log("Timer reset."); }
+        // *** NEW: Play Notification Sound ***
+        function playNotificationSound() {
+            // Ensure Tone.js is loaded and user has interacted (required for audio autoplay)
+             if (typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
+                Tone.start(); // Start audio context on first interaction (like button click)
             }
-             // Update page title
-            if (timerState === 'running') {
-                document.title = `${formatTime(timerSecondsRemaining)} - ${timerMode === 'work' ? 'Làm việc' : 'Nghỉ'} | Ứng dụng Cá nhân v2.1`;
-            } else {
-                 // Reset title if timer is not running or module changes
-                 let baseTitle = "Ứng dụng Phát triển Cá nhân v2.1";
-                 let moduleTitle = "";
-                 if (currentModule === 'notes') moduleTitle = " - Ghi Chú";
-                 else if (currentModule === 'goals') moduleTitle = " - Mục tiêu";
-                 else if (currentModule === 'habits') moduleTitle = " - Thói quen";
-                 else if (currentModule === 'skills') moduleTitle = " - Kỹ năng";
-                 else if (currentModule === 'time') moduleTitle = " - Thời gian";
-                 document.title = baseTitle + moduleTitle;
-            }
-        }
-
-        // Function called every second by the interval
-        function tick() {
-            if (timerSecondsRemaining <= 0) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-                // Switch mode
-                if (timerMode === 'work') {
-                    timerMode = 'shortBreak';
-                    timerSecondsRemaining = BREAK_DURATION;
-                    alert("Đã hết giờ làm việc! Bắt đầu nghỉ ngắn."); // Simple alert notification
-                } else {
-                    timerMode = 'work';
-                    timerSecondsRemaining = WORK_DURATION;
-                    alert("Đã hết giờ nghỉ! Quay lại làm việc."); // Simple alert notification
+            // Check again if context is running now
+            if (typeof Tone !== 'undefined' && Tone.context.state === 'running') {
+                try {
+                    // Create a simple synth and play a note
+                    const synth = new Tone.Synth().toDestination();
+                    synth.triggerAttackRelease("C5", "8n"); // Play C5 note for an 8th note duration
+                    console.log("Played notification sound.");
+                } catch (error) {
+                    console.error("Error playing sound:", error);
                 }
-                timerState = 'stopped';
-                updateTimerDisplay();
             } else {
-                timerSecondsRemaining--;
-                updateTimerDisplay();
+                 console.warn("AudioContext not running. Cannot play sound yet. Interact with the page first.");
+                 // Fallback: Simple alert if audio context fails
+                 // alert("Timer finished!"); // You might remove this if the mode change alert is enough
             }
         }
+         // *** NEW: Load/Save Pomodoro Settings ***
+        function loadPomodoroSettings() {
+            WORK_DURATION_MIN = parseInt(localStorage.getItem('pomodoroWork') || '25', 10);
+            SHORT_BREAK_DURATION_MIN = parseInt(localStorage.getItem('pomodoroShortBreak') || '5', 10);
+            LONG_BREAK_DURATION_MIN = parseInt(localStorage.getItem('pomodoroLongBreak') || '15', 10);
 
-        // Start the timer
-        function startPomodoro() {
-            if (timerState !== 'running') {
-                timerState = 'running';
-                // Clear any existing interval before starting a new one
-                if (timerInterval) clearInterval(timerInterval);
-                timerInterval = setInterval(tick, 1000); // Run tick every second
-                console.log("Timer started in mode:", timerMode);
+            // Update durations in seconds
+            WORK_DURATION_SEC = WORK_DURATION_MIN * 60;
+            SHORT_BREAK_DURATION_SEC = SHORT_BREAK_DURATION_MIN * 60;
+            LONG_BREAK_DURATION_SEC = LONG_BREAK_DURATION_MIN * 60;
+
+             // Reset timer to current mode's duration if stopped
+            if (timerState === 'stopped') {
+                resetPomodoro();
             }
+             // Update input fields in settings area if they exist
+            const workInput = document.getElementById('pomodoro-work-duration');
+            const shortBreakInput = document.getElementById('pomodoro-short-break-duration');
+            const longBreakInput = document.getElementById('pomodoro-long-break-duration');
+            if (workInput) workInput.value = WORK_DURATION_MIN;
+            if (shortBreakInput) shortBreakInput.value = SHORT_BREAK_DURATION_MIN;
+            if (longBreakInput) longBreakInput.value = LONG_BREAK_DURATION_MIN;
+
+            console.log("Pomodoro settings loaded:", { work: WORK_DURATION_MIN, short: SHORT_BREAK_DURATION_MIN, long: LONG_BREAK_DURATION_MIN });
         }
 
-        // Pause the timer
-        function pausePomodoro() {
-            if (timerState === 'running') {
-                clearInterval(timerInterval);
-                timerInterval = null;
-                timerState = 'paused';
-                console.log("Timer paused.");
-                updateTimerDisplay(); // Update title when paused
-            }
-        }
+        function savePomodoroSettings() {
+            const workInput = document.getElementById('pomodoro-work-duration');
+            const shortBreakInput = document.getElementById('pomodoro-short-break-duration');
+            const longBreakInput = document.getElementById('pomodoro-long-break-duration');
 
-        // Reset the timer to the current mode's default duration
-        function resetPomodoro() {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            timerState = 'stopped';
-            timerSecondsRemaining = (timerMode === 'work') ? WORK_DURATION : BREAK_DURATION;
-            updateTimerDisplay();
-            console.log("Timer reset.");
+            if (workInput && shortBreakInput && longBreakInput) {
+                 // Basic validation (ensure positive numbers)
+                const workVal = parseInt(workInput.value, 10);
+                const shortVal = parseInt(shortBreakInput.value, 10);
+                const longVal = parseInt(longBreakInput.value, 10);
+
+                if (isNaN(workVal) || workVal <= 0 || isNaN(shortVal) || shortVal <= 0 || isNaN(longVal) || longVal <= 0) {
+                    alert("Vui lòng nhập số phút hợp lệ (lớn hơn 0) cho tất cả các khoảng thời gian.");
+                    return;
+                }
+
+                localStorage.setItem('pomodoroWork', workVal);
+                localStorage.setItem('pomodoroShortBreak', shortVal);
+                localStorage.setItem('pomodoroLongBreak', longVal);
+
+                // Reload settings and update timer immediately
+                loadPomodoroSettings();
+                // Reset timer to apply new settings if it was stopped/paused
+                 if (timerState !== 'running') {
+                     resetPomodoro();
+                 }
+
+                alert("Đã lưu cài đặt Pomodoro!");
+                console.log("Pomodoro settings saved.");
+            } else {
+                 console.error("Could not find Pomodoro settings input elements.");
+            }
         }
 
 
@@ -534,7 +440,10 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', renderAppContent);
+        document.addEventListener('DOMContentLoaded', () => {
+             loadPomodoroSettings(); // Load settings on initial load
+             renderAppContent();
+        });
         console.log("Personal App v2.1 with Pomodoro Timer!");
 
     </script>
