@@ -200,12 +200,99 @@
         function buildGoalsUI() { /* ... (Code from v1.3) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><button id="show-goal-form-btn" class="add-new-button" style="background-color: #22c55e;">Tạo mục tiêu mới</button><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div class="flex justify-end"><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Mục tiêu</button><button id="cancel-add-goal-btn" type="button" class="form-cancel-button">Hủy</button></div></form><div class="flex justify-end mb-4"><div class="flex items-center space-x-2"><label for="goal-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label><select id="goal-sort-select" class="sort-select"><option value="default" ${goalSortPreference==='default'?'selected':''}>Mặc định</option><option value="due_date_asc" ${goalSortPreference==='due_date_asc'?'selected':''}>Hạn gần nhất</option><option value="due_date_desc" ${goalSortPreference==='due_date_desc'?'selected':''}>Hạn xa nhất</option><option value="name_asc" ${goalSortPreference==='name_asc'?'selected':''}>Tên (A-Z)</option><option value="name_desc" ${goalSortPreference==='name_desc'?'selected':''}>Tên (Z-A)</option><option value="newest" ${goalSortPreference==='newest'?'selected':''}>Ngày tạo mới nhất</option><option value="oldest" ${goalSortPreference==='oldest'?'selected':''}>Ngày tạo cũ nhất</option></select></div></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list"></div>`; const sgfb=document.getElementById('show-goal-form-btn'); const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const cagb=document.getElementById('cancel-add-goal-btn'); const gss=document.getElementById('goal-sort-select'); const gl=document.getElementById('goals-list'); sgfb.addEventListener('click',()=>{agf.classList.remove('hidden'); sgfb.classList.add('hidden'); gi.focus();}); cagb.addEventListener('click',()=>{agf.classList.add('hidden'); sgfb.classList.remove('hidden'); gi.value=''; gdi.value=''; gddi.value='';}); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl,agf,sgfb);}); gss.addEventListener('change',(e)=>{goalSortPreference=e.target.value; localStorage.setItem('goalSortPref',goalSortPreference); displayGoals(gl,goalSortPreference);}); displayGoals(gl,goalSortPreference); }
         function buildHabitsUI() { /* ... (Code from v1.0) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} const s=calculateHabitStats(); appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><div id="habit-stats-area" class="habit-stats">${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday} / ${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}</div><button id="show-habit-form-btn" class="add-new-button" style="background-color: #a855f7;">Tạo thói quen mới</button><form id="add-habit-form" class="mb-6 flex items-center space-x-2 hidden"><input type="text" id="habit-input" placeholder="Nhập thói quen mới..." required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-habit-btn" type="button" class="form-cancel-button !ml-2 !py-2 !px-4">Hủy</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list"></div>`; const shfb=document.getElementById('show-habit-form-btn'); const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const cahb=document.getElementById('cancel-add-habit-btn'); const hl=document.getElementById('habits-list'); shfb.addEventListener('click',()=>{ahf.classList.remove('hidden'); shfb.classList.add('hidden'); hi.focus();}); cahb.addEventListener('click',()=>{ahf.classList.add('hidden'); shfb.classList.remove('hidden'); hi.value='';}); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl,ahf,shfb);}); displayHabits(hl); }
         function buildSkillsUI() { /* ... (Code from v1.4) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Quản lý Kỹ năng</h2><button id="show-skill-form-btn" class="add-new-button" style="background-color: #f59e0b;">Thêm kỹ năng mới</button><form id="add-skill-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="skill-input" class="block text-sm font-medium text-gray-700 mb-1">Tên kỹ năng:</label><input type="text" id="skill-input" placeholder="Ví dụ: Lập trình Python" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"></div><div><label for="skill-level-select" class="block text-sm font-medium text-gray-700 mb-1">Mức độ (tùy chọn):</label><select id="skill-level-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"><option value="">-- Chọn mức độ --</option><option value="Beginner">Người mới bắt đầu</option><option value="Intermediate">Trung cấp</option><option value="Advanced">Nâng cao</option><option value="Expert">Chuyên gia</option></select></div><div><label for="skill-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả/Ghi chú (tùy chọn):</label><textarea id="skill-desc-input" placeholder="Thêm mô tả, tài liệu tham khảo,..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"></textarea></div><div class="flex justify-end"><button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Kỹ năng</button><button id="cancel-add-skill-btn" type="button" class="form-cancel-button">Hủy</button></div></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Kỹ năng</h3><div id="skills-list"></div>`; const ssfb=document.getElementById('show-skill-form-btn'); const asf=document.getElementById('add-skill-form'); const ski=document.getElementById('skill-input'); const sls=document.getElementById('skill-level-select'); const sdi=document.getElementById('skill-desc-input'); const casb=document.getElementById('cancel-add-skill-btn'); const sl=document.getElementById('skills-list'); ssfb.addEventListener('click',()=>{asf.classList.remove('hidden'); ssfb.classList.add('hidden'); ski.focus();}); casb.addEventListener('click',()=>{asf.classList.add('hidden'); ssfb.classList.remove('hidden'); ski.value=''; sls.value=''; sdi.value='';}); asf.addEventListener('submit',(e)=>{e.preventDefault();addSkill(ski,sls,sdi,sl,asf,ssfb);}); displaySkills(sl); }
-        function buildTimeManagementUI() { /* ... (Code from v1.9) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Danh sách Việc cần làm</h2><button id="show-todo-form-btn" class="add-new-button" style="background-color: #14b8a6;">Thêm việc mới</button><form id="add-todo-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="todo-input" class="block text-sm font-medium text-gray-700 mb-1">Nội dung công việc:</label><input type="text" id="todo-input" placeholder="Ví dụ: Hoàn thành báo cáo tuần" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"></div><div class="flex justify-end"><button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-todo-btn" type="button" class="form-cancel-button">Hủy</button></div></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Công việc</h3><div id="todo-list"></div>`; const stfb=document.getElementById('show-todo-form-btn'); const atf=document.getElementById('add-todo-form'); const ti=document.getElementById('todo-input'); const catb=document.getElementById('cancel-add-todo-btn'); const tl=document.getElementById('todo-list'); stfb.addEventListener('click',()=>{atf.classList.remove('hidden'); stfb.classList.add('hidden'); ti.focus();}); catb.addEventListener('click',()=>{atf.classList.add('hidden'); stfb.classList.remove('hidden'); ti.value='';}); atf.addEventListener('submit',(e)=>{e.preventDefault();addTodo(ti,tl,atf,stfb);}); displayTodos(tl); }
+
+        // *** UPDATED: buildTimeManagementUI Function ***
+        function buildTimeManagementUI() {
+            if (!appContent.classList.contains('app-module-container')) {
+                 appContent.className = 'app-module-container';
+            }
+            appContent.innerHTML = `
+                <h2 class="text-xl font-semibold mb-4">Danh sách Việc cần làm</h2>
+                <button id="show-todo-form-btn" class="add-new-button" style="background-color: #14b8a6;">Thêm việc mới</button>
+                <form id="add-todo-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden">
+                     <div>
+                         <label for="todo-input" class="block text-sm font-medium text-gray-700 mb-1">Nội dung công việc:</label>
+                         <input type="text" id="todo-input" placeholder="Ví dụ: Hoàn thành báo cáo tuần" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                     </div>
+                     {/* Added Priority Select */}
+                     <div>
+                         <label for="todo-priority-select" class="block text-sm font-medium text-gray-700 mb-1">Ưu tiên:</label>
+                         <select id="todo-priority-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                            <option value="Medium" selected>Trung bình</option>
+                            <option value="High">Cao</option>
+                            <option value="Low">Thấp</option>
+                         </select>
+                     </div>
+                     {/* Added Due Date Input */}
+                     <div>
+                         <label for="todo-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label>
+                         <input type="date" id="todo-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
+                     </div>
+                    <div class="flex justify-end">
+                        <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">
+                            Thêm
+                        </button>
+                        <button id="cancel-add-todo-btn" type="button" class="form-cancel-button">Hủy</button>
+                    </div>
+                </form>
+
+                 <div class="flex justify-end mb-4">
+                     <div class="flex items-center space-x-2">
+                         <label for="todo-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label>
+                         <select id="todo-sort-select" class="sort-select">
+                             <option value="default" ${todoSortPreference === 'default' ? 'selected' : ''}>Mặc định</option>
+                             <option value="priority_high_low" ${todoSortPreference === 'priority_high_low' ? 'selected' : ''}>Ưu tiên (Cao-Thấp)</option>
+                             <option value="due_date_asc" ${todoSortPreference === 'due_date_asc' ? 'selected' : ''}>Hạn gần nhất</option>
+                             <option value="newest" ${todoSortPreference === 'newest' ? 'selected' : ''}>Mới nhất</option>
+                             <option value="oldest" ${todoSortPreference === 'oldest' ? 'selected' : ''}>Cũ nhất</option>
+                         </select>
+                    </div>
+                </div>
+
+                <h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Công việc</h3>
+                <div id="todo-list"></div>
+            `;
+
+            // Get references
+            const showTodoFormBtn = document.getElementById('show-todo-form-btn');
+            const addTodoForm = document.getElementById('add-todo-form');
+            const todoInput = document.getElementById('todo-input');
+            const todoPrioritySelect = document.getElementById('todo-priority-select'); // Get priority select
+            const todoDueDateInput = document.getElementById('todo-due-date-input'); // Get due date input
+            const cancelAddTodoBtn = document.getElementById('cancel-add-todo-btn');
+            const todoSortSelect = document.getElementById('todo-sort-select'); // Get sort select
+            const todoList = document.getElementById('todo-list');
+
+            // Event listeners
+            showTodoFormBtn.addEventListener('click', () => { addTodoForm.classList.remove('hidden'); showTodoFormBtn.classList.add('hidden'); todoInput.focus(); });
+            cancelAddTodoBtn.addEventListener('click', () => {
+                addTodoForm.classList.add('hidden');
+                showTodoFormBtn.classList.remove('hidden');
+                todoInput.value = '';
+                todoPrioritySelect.value = 'Medium'; // Reset priority
+                todoDueDateInput.value = ''; // Reset due date
+            });
+            addTodoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Pass new inputs to addTodo
+                addTodo(todoInput, todoPrioritySelect, todoDueDateInput, todoList, addTodoForm, showTodoFormBtn);
+            });
+            // Sort listener
+             todoSortSelect.addEventListener('change', (e) => {
+                todoSortPreference = e.target.value;
+                localStorage.setItem('todoSortPref', todoSortPreference);
+                displayTodos(todoList, todoSortPreference); // Re-display with new sort
+            });
+
+            // Initial display
+            displayTodos(todoList, todoSortPreference);
+        }
+
 
         // --- Core Application Logic ---
         function renderAppContent() {
             console.log(`Rendering module: ${currentModule}`);
-            let baseTitle = "Ứng dụng Phát triển Cá nhân v1.9"; // Updated version
+            let baseTitle = "Ứng dụng Phát triển Cá nhân v2.0"; // Updated version
             let moduleTitle = "";
             if (currentModule === 'notes') moduleTitle = " - Ghi Chú";
             else if (currentModule === 'goals') moduleTitle = " - Mục tiêu";
@@ -285,12 +372,13 @@
 
         // --- Time Management (ToDo List) Functions ---
         const TODOS_STORAGE_KEY = 'personalTodos';
-        function getTodos() { /* ... (Code from v1.9) ... */ const t=localStorage.getItem(TODOS_STORAGE_KEY); try { const p=t?JSON.parse(t):[]; return p.map(td=>({...td, completed:td.completed||false})); } catch(e){console.error("Error parsing todos:",e); return [];} }
+        function getTodos() { /* ... (Code from v1.9) ... */ const t=localStorage.getItem(TODOS_STORAGE_KEY); try { const p=t?JSON.parse(t):[]; return p.map(td=>({...td, completed:td.completed||false, priority: td.priority || 'Medium', dueDate: td.dueDate || null })); } catch(e){console.error("Error parsing todos:",e); return [];} } // Added default priority/dueDate
         function saveTodos(todos) { /* ... (Code from v1.9) ... */ localStorage.setItem(TODOS_STORAGE_KEY,JSON.stringify(todos)); }
-        // *** UPDATED: displayTodos Function (Fix ReferenceError) ***
-        function displayTodos(todoListElement) {
+
+        // *** UPDATED: displayTodos Function ***
+        function displayTodos(todoListElement, sortBy = todoSortPreference) { // Added sortBy
             if (!todoListElement) { console.error("Todo list element needed"); return; }
-            const todos = getTodos();
+            let todos = getTodos(); // Use let
             todoListElement.innerHTML = '';
 
             if (todos.length === 0) {
@@ -298,47 +386,247 @@
                 return;
             }
 
-            todos.sort((a, b) => (a.completed - b.completed) || (b.createdAt - a.createdAt));
+            // Define priority order for sorting
+            const priorityOrder = { High: 1, Medium: 2, Low: 3 };
+
+            // Sort based on preference
+            todos.sort((a, b) => {
+                // Always keep incomplete tasks first
+                if (a.completed !== b.completed) {
+                    return a.completed - b.completed; // false (0) comes before true (1)
+                }
+                // If completion status is the same, apply selected sort order
+                switch (sortBy) {
+                    case 'priority_high_low':
+                        return (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99); // Lower number = higher priority
+                    case 'due_date_asc':
+                        return (new Date(a.dueDate || '9999-12-31')) - (new Date(b.dueDate || '9999-12-31'));
+                    case 'newest':
+                         return (b.createdAt || 0) - (a.createdAt || 0);
+                    case 'oldest':
+                         return (a.createdAt || 0) - (b.createdAt || 0);
+                    case 'default':
+                    default:
+                        // Default: Incomplete -> Priority High-Low -> Due Date Asc -> Created Desc
+                        return (priorityOrder[a.priority] || 99) - (priorityOrder[b.priority] || 99) ||
+                               (new Date(a.dueDate || '9999-12-31')) - (new Date(b.dueDate || '9999-12-31')) ||
+                               (b.createdAt - a.createdAt);
+                }
+            });
+
 
             todos.forEach((todo, index) => {
-                const todoElement = document.createElement('div'); // Use todoElement here
+                const todoElement = document.createElement('div');
                 todoElement.dataset.todoId = todo.id;
                 const bgColor = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
-                todoElement.classList.add('todo-item', bgColor);
+                todoElement.classList.add('todo-item', bgColor, 'flex', 'flex-col', 'items-start'); // Use flex-col
                 if (todo.completed) {
                     todoElement.classList.add('completed');
                     todoElement.classList.remove('bg-white', 'bg-gray-50');
                 }
 
-                const contentDiv = document.createElement('div');
-                contentDiv.classList.add('todo-item-content');
+                // Content Row (Checkbox, Text, Buttons)
+                const contentRow = document.createElement('div');
+                contentRow.classList.add('flex', 'items-center', 'w-full'); // Ensure full width
+
+                const todoInfo = document.createElement('div');
+                todoInfo.classList.add('todo-info'); // Container for checkbox and text
 
                 const checkbox = document.createElement('input');
                 checkbox.type = 'checkbox';
                 checkbox.checked = todo.completed;
                 checkbox.classList.add('todo-checkbox');
                 checkbox.onchange = () => toggleTodoComplete(todo.id, todoListElement);
+                todoInfo.appendChild(checkbox);
 
                 const textElement = document.createElement('span');
                 textElement.classList.add('todo-text');
                 textElement.textContent = todo.text;
+                todoInfo.appendChild(textElement);
 
+                const buttonContainer = document.createElement('div');
+                buttonContainer.classList.add('flex-shrink-0', 'flex');
+
+                // Edit Button
+                const editButton = document.createElement('button');
+                editButton.classList.add('action-button-icon', 'edit-icon-btn');
+                editButton.innerHTML = ICONS.edit;
+                editButton.setAttribute('aria-label', 'Sửa công việc');
+                editButton.onclick = () => toggleTodoEdit(todo.id, todoListElement); // Call toggle edit
+                buttonContainer.appendChild(editButton);
+
+                // Delete Button
                 const deleteButton = document.createElement('button');
                 deleteButton.classList.add('action-button-icon', 'delete-icon-btn');
                 deleteButton.innerHTML = ICONS.delete;
                 deleteButton.setAttribute('aria-label', 'Xóa công việc');
                 deleteButton.onclick = () => deleteTodo(todo.id, todoListElement);
+                buttonContainer.appendChild(deleteButton);
 
-                contentDiv.appendChild(checkbox);
-                contentDiv.appendChild(textElement);
-                contentDiv.appendChild(deleteButton);
-                todoElement.appendChild(contentDiv); // Append contentDiv to todoElement
-                todoListElement.appendChild(todoElement); // Append todoElement to the list
+                contentRow.appendChild(todoInfo);
+                contentRow.appendChild(buttonContainer);
+                todoElement.appendChild(contentRow);
+
+                // Details Row (Priority, Due Date) - Only if not completed
+                if (!todo.completed && (todo.priority || todo.dueDate)) {
+                    const detailsRow = document.createElement('div');
+                    detailsRow.classList.add('todo-details', 'w-full');
+
+                    // Priority Tag
+                    if (todo.priority) {
+                        const priorityElement = document.createElement('span');
+                        priorityElement.classList.add('todo-priority', `priority-${todo.priority}`);
+                        priorityElement.textContent = todo.priority === 'High' ? 'Cao' : (todo.priority === 'Medium' ? 'Trung bình' : 'Thấp');
+                        detailsRow.appendChild(priorityElement);
+                    }
+
+                    // Due Date Info
+                    if (todo.dueDate) {
+                        const dueDateElement = document.createElement('span');
+                        const remaining = calculateDaysRemaining(todo.dueDate); // Use goal's helper
+                        dueDateElement.classList.add('todo-due-date');
+                        if (remaining.class === 'overdue') {
+                            dueDateElement.classList.add('overdue');
+                        }
+                        dueDateElement.textContent = `Hạn: ${formatDisplayDate(todo.dueDate)} ${remaining.text ? `(${remaining.text})` : ''}`;
+                        detailsRow.appendChild(dueDateElement);
+                    }
+                    todoElement.appendChild(detailsRow);
+                }
+
+                todoListElement.appendChild(todoElement);
             });
         }
-        function addTodo(todoInputElement, todoListElement, formElement, showFormBtn) { /* ... (Code from v1.9) ... */ if(!todoInputElement||!todoListElement||!formElement||!showFormBtn)return; const tt=todoInputElement.value.trim(); if(tt){const t=getTodos(); const n=Date.now(); const nt={id:n,text:tt,completed:false,createdAt:n}; t.push(nt); saveTodos(t); todoInputElement.value=''; formElement.classList.add('hidden'); showFormBtn.classList.remove('hidden'); displayTodos(todoListElement); console.log("Added todo:",nt);} else {alert("Nội dung công việc không được để trống!");} }
-        function deleteTodo(todoId, todoListElement) { /* ... (Code from v1.9) ... */ if(!window.confirm("Bạn có chắc muốn xóa công việc này không?"))return; let t=getTodos(); t=t.filter(td=>td.id!==todoId); saveTodos(t); displayTodos(todoListElement); console.log("Deleted todo ID:",todoId); }
-        function toggleTodoComplete(todoId, todoListElement) { /* ... (Code from v1.9) ... */ let t=getTodos(); const i=t.findIndex(td=>td.id===todoId); if(i>-1){t[i].completed=!t[i].completed; saveTodos(t); displayTodos(todoListElement); console.log(`Toggled completion for todo ID: ${todoId} to ${t[i].completed}`);} else {console.error("Could not find todo to toggle:",todoId);} }
+
+        // *** UPDATED: addTodo Function ***
+        function addTodo(todoInputElement, prioritySelectElement, dueDateInputElement, todoListElement, formElement, showFormBtn) {
+             if (!todoInputElement || !prioritySelectElement || !dueDateInputElement || !todoListElement || !formElement || !showFormBtn) {
+                 console.error("Missing arguments for addTodo");
+                 return;
+             }
+             const todoText = todoInputElement.value.trim();
+             const todoPriority = prioritySelectElement.value;
+             const todoDueDate = dueDateInputElement.value;
+
+             if (todoText) {
+                 const todos = getTodos();
+                 const now = Date.now();
+                 const newTodo = {
+                     id: now,
+                     text: todoText,
+                     completed: false,
+                     priority: todoPriority, // Save priority
+                     dueDate: todoDueDate || null, // Save due date
+                     createdAt: now
+                 };
+                 todos.push(newTodo);
+                 saveTodos(todos);
+
+                 // Clear inputs, hide form, show button
+                 todoInputElement.value = '';
+                 prioritySelectElement.value = 'Medium'; // Reset priority
+                 dueDateInputElement.value = ''; // Reset due date
+                 formElement.classList.add('hidden');
+                 showFormBtn.classList.remove('hidden');
+
+                 displayTodos(todoListElement, todoSortPreference); // Refresh list with current sort
+                 console.log("Added todo:", newTodo);
+             } else {
+                 alert("Nội dung công việc không được để trống!");
+             }
+        }
+
+        function deleteTodo(todoId, todoListElement) { /* ... (Code from v1.9) ... */ if(!window.confirm("Bạn có chắc muốn xóa công việc này không?"))return; let t=getTodos(); t=t.filter(td=>td.id!==todoId); saveTodos(t); displayTodos(todoListElement, todoSortPreference); console.log("Deleted todo ID:",todoId); } // Pass sort pref
+        function toggleTodoComplete(todoId, todoListElement) { /* ... (Code from v1.9) ... */ let t=getTodos(); const i=t.findIndex(td=>td.id===todoId); if(i>-1){t[i].completed=!t[i].completed; saveTodos(t); displayTodos(todoListElement, todoSortPreference); console.log(`Toggled completion for todo ID: ${todoId} to ${t[i].completed}`);} else {console.error("Could not find todo to toggle:",todoId);} } // Pass sort pref
+
+        // *** NEW: toggleTodoEdit Function ***
+        function toggleTodoEdit(todoId, todoListElement) {
+            displayTodos(todoListElement, todoSortPreference); // Refresh to cancel other edits
+
+            const todoElement = todoListElement.querySelector(`[data-todo-id='${todoId}']`);
+            if (!todoElement) return;
+
+            const todos = getTodos();
+            const todo = todos.find(t => t.id === todoId);
+            if (!todo) return;
+
+            // --- Create Edit Form ---
+            const editArea = document.createElement('div');
+            editArea.classList.add('todo-edit-area');
+
+            // Text Input
+            const textLabel = document.createElement('label'); textLabel.textContent="Nội dung:";
+            const textInput = document.createElement('input'); textInput.type='text'; textInput.value=todo.text; textInput.required=true;
+            editArea.appendChild(textLabel); editArea.appendChild(textInput);
+
+            // Priority Select
+            const priorityLabel = document.createElement('label'); priorityLabel.textContent="Ưu tiên:"; priorityLabel.classList.add('mt-2');
+            const prioritySelect = document.createElement('select'); prioritySelect.id=`edit-todo-priority-${todoId}`;
+            priorityLabel.htmlFor = prioritySelect.id;
+            prioritySelect.innerHTML = `
+                <option value="High" ${todo.priority === 'High' ? 'selected' : ''}>Cao</option>
+                <option value="Medium" ${todo.priority === 'Medium' ? 'selected' : ''}>Trung bình</option>
+                <option value="Low" ${todo.priority === 'Low' ? 'selected' : ''}>Thấp</option>
+            `;
+            editArea.appendChild(priorityLabel); editArea.appendChild(prioritySelect);
+
+            // Due Date Input
+            const dateLabel = document.createElement('label'); dateLabel.textContent="Hạn chót:"; dateLabel.classList.add('mt-2');
+            const dateInput = document.createElement('input'); dateInput.type='date'; dateInput.value=todo.dueDate || '';
+            editArea.appendChild(dateLabel); editArea.appendChild(dateInput);
+
+             // --- Create Save/Cancel Buttons ---
+             const editButtonContainer = document.createElement('div');
+             editButtonContainer.classList.add('flex', 'justify-end', 'mt-3');
+
+             const saveButton = document.createElement('button');
+             saveButton.classList.add('action-button-icon', 'save-icon-btn');
+             saveButton.innerHTML = ICONS.save;
+             saveButton.setAttribute('aria-label', 'Lưu thay đổi');
+             saveButton.onclick = () => saveTodoEdit(todoId, textInput.value, prioritySelect.value, dateInput.value, todoListElement);
+
+             const cancelButton = document.createElement('button');
+             cancelButton.classList.add('action-button-icon', 'cancel-icon-btn');
+             cancelButton.innerHTML = ICONS.cancel;
+             cancelButton.setAttribute('aria-label', 'Hủy bỏ');
+             cancelButton.onclick = () => displayTodos(todoListElement, todoSortPreference);
+
+             editButtonContainer.appendChild(saveButton);
+             editButtonContainer.appendChild(cancelButton);
+             editArea.appendChild(editButtonContainer);
+
+            // --- Replace Todo Content with Edit Form ---
+            todoElement.innerHTML = ''; // Clear existing content
+            todoElement.appendChild(editArea); // Add the edit form
+            todoElement.classList.add('editing');
+            textInput.focus();
+        }
+
+        // *** NEW: saveTodoEdit Function ***
+        function saveTodoEdit(todoId, newText, newPriority, newDueDate, todoListElement) {
+            const trimmedText = newText.trim();
+            if (!trimmedText) {
+                alert("Nội dung công việc không được để trống!");
+                return;
+            }
+
+            let todos = getTodos();
+            const todoIndex = todos.findIndex(todo => todo.id === todoId);
+
+            if (todoIndex > -1) {
+                todos[todoIndex].text = trimmedText;
+                todos[todoIndex].priority = newPriority;
+                todos[todoIndex].dueDate = newDueDate || null;
+                // Optionally add modifiedAt
+                // todos[todoIndex].modifiedAt = Date.now();
+                saveTodos(todos);
+                displayTodos(todoListElement, todoSortPreference); // Refresh list
+                console.log(`Saved edit for todo ID: ${todoId}`);
+            } else {
+                console.error("Could not find todo to save edit:", todoId);
+                displayTodos(todoListElement, todoSortPreference);
+            }
+        }
 
 
         // --- Initialization and Event Listeners ---
@@ -355,7 +643,7 @@
         });
 
         document.addEventListener('DOMContentLoaded', renderAppContent);
-        console.log("Personal App v1.6 with Skills Add Fix!"); // Updated console log
+        console.log("Personal App v2.0 with Enhanced ToDo List!");
 
     </script>
 
