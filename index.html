@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ứng dụng Phát triển Cá nhân v1.9</title>
+    <title>Ứng dụng Phát triển Cá nhân v2.0</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -12,7 +12,6 @@
         /* --- General UI Refinements --- */
         .app-module-container { background-color: white; padding: 1.5rem; border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); min-height: 300px; }
         .empty-state-message { text-align: center; color: #6b7280; padding: 2rem 0; font-style: italic; }
-        /* .list-item-hover:hover { background-color: #f9fafb; } */
         .action-button-icon { padding: 0.3rem; margin-left: 0.5rem; border-radius: 9999px; transition: background-color 0.15s ease-in-out, color 0.15s ease-in-out; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; }
         .action-button-icon svg { width: 16px; height: 16px; }
         .action-button-icon:hover { background-color: rgba(0, 0, 0, 0.05); }
@@ -26,24 +25,19 @@
         .sort-select { padding: 0.5rem 2rem 0.5rem 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; background-color: white; font-size: 0.875rem; color: #374151; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1.5em 1.5em; }
 
         /* --- Module Navigation Buttons --- */
-        .module-nav-button {
-            padding: 0.6rem 1rem; border-radius: 0.375rem; font-weight: 600; color: white;
-            transition: background-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.1);
-        }
+        .module-nav-button { padding: 0.6rem 1rem; border-radius: 0.375rem; font-weight: 600; color: white; transition: background-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); border: 1px solid rgba(0,0,0,0.1); }
         .module-nav-button.active { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.5), 0 1px 2px 0 rgba(0, 0, 0, 0.05); filter: brightness(1.1); }
         .nav-btn-notes { background-color: #3b82f6; } .nav-btn-notes:hover { background-color: #2563eb; }
         .nav-btn-goals { background-color: #22c55e; } .nav-btn-goals:hover { background-color: #16a34a; }
         .nav-btn-habits { background-color: #a855f7; } .nav-btn-habits:hover { background-color: #9333ea; }
         .nav-btn-skills { background-color: #f59e0b; } .nav-btn-skills:hover { background-color: #d97706; }
-        .nav-btn-time { background-color: #14b8a6; } /* Teal for Time */
-        .nav-btn-time:hover { background-color: #0d9488; }
+        .nav-btn-time { background-color: #14b8a6; } .nav-btn-time:hover { background-color: #0d9488; }
 
         .pin-indicator { position: absolute; top: 6px; left: 6px; opacity: 0.6; }
         .pin-indicator svg { width: 12px; height: 12px; }
 
         /* --- Notes Specific --- */
-        .note-item { background-color: white; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; position: relative; margin-bottom: 0.75rem; }
+        .note-item { background-color: white; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; position: relative; margin-bottom: 0.75rem; }
         .note-item.pinned { background-color: #fef9c3 !important; border-left: 3px solid #facc15; padding-left: 1.25rem; }
         .note-item .pin-indicator { color: #a16207; }
         .note-content, .edit-textarea { white-space: pre-wrap; word-break: break-word; }
@@ -52,7 +46,7 @@
         .note-item.editing { background-color: #fef3c7 !important; }
 
         /* --- Goals Specific --- */
-        .goal-item { display: flex; flex-direction: column; padding: 1rem; border-radius: 0.375rem; background-color: white; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; position: relative; }
+        .goal-item { display: flex; flex-direction: column; padding: 1rem; border-radius: 0.375rem; background-color: white; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; position: relative; }
         .goal-item.pinned { background-color: #eef2ff !important; border-left: 3px solid #6366f1; padding-left: 1.5rem; }
         .goal-item .pin-indicator { color: #4f46e5; }
         .goal-item.completed { background-color: #e5e7eb !important; }
@@ -71,7 +65,7 @@
         .goal-edit-area textarea, .goal-edit-area input[type="date"], .goal-edit-area input[type="text"] { width: 100%; padding: 0.25rem 0.5rem; border: 1px solid #d1d5db; border-radius: 0.25rem; margin-bottom: 0.5rem; font-size: 0.875rem; }
 
         /* --- Habits Specific --- */
-        .habit-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.375rem; background-color: white; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; transition: background-color 0.15s ease-in-out; }
+        .habit-item { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-radius: 0.375rem; background-color: white; margin-bottom: 0.75rem; border: 1px solid #e5e7eb; }
         .habit-item.editing { background-color: #f5f3ff !important; border-color: #c4b5fd; }
         .habit-info { display: flex; align-items: baseline; flex-grow: 1; margin-right: 1rem; }
         .habit-name { font-weight: 500; }
@@ -116,11 +110,24 @@
         }
 
         /* --- Time Management (ToDo List) Specific --- */
-        .todo-item { background-color: white; padding: 0.75rem 1rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; margin-bottom: 0.75rem; display: flex; justify-content: space-between; align-items: center; }
+        .todo-item { background-color: white; padding: 0.75rem 1rem; border-radius: 0.375rem; border: 1px solid #e5e7eb; margin-bottom: 0.75rem; }
+        .todo-item.editing { background-color: #f0fdfa !important; border-color: #99f6e4; } /* Light teal for editing */
+        .todo-item-content { display: flex; justify-content: space-between; align-items: center; }
+        .todo-info { display: flex; align-items: center; flex-grow: 1; }
+        .todo-text { margin-left: 0.75rem; flex-grow: 1; }
         .todo-item.completed .todo-text { text-decoration: line-through; color: #6b7280; }
         .todo-item.completed { background-color: #f3f4f6 !important; }
-        .todo-text { flex-grow: 1; margin-left: 0.75rem; }
-        .todo-checkbox { width: 1.25rem; height: 1.25rem; border-radius: 0.25rem; border: 1px solid #9ca3af; cursor: pointer; accent-color: #14b8a6; }
+        .todo-checkbox { width: 1.25rem; height: 1.25rem; border-radius: 0.25rem; border: 1px solid #9ca3af; cursor: pointer; accent-color: #14b8a6; flex-shrink: 0; }
+        .todo-details { font-size: 0.75rem; color: #4b5563; margin-top: 0.25rem; padding-left: 2rem; /* Indent details */ display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; }
+        .todo-priority { font-weight: 500; padding: 0.1rem 0.4rem; border-radius: 0.25rem; }
+        .priority-High { background-color: #fee2e2; color: #b91c1c; } /* Red */
+        .priority-Medium { background-color: #fef3c7; color: #a16207; } /* Amber */
+        .priority-Low { background-color: #dbeafe; color: #1e40af; } /* Blue */
+        .todo-due-date { font-style: italic; }
+        .todo-due-date.overdue { color: #dc2626; font-weight: 600; }
+        .todo-edit-area { margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e5e7eb; }
+        .todo-edit-area label { display: block; font-size: 0.75rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
+        .todo-edit-area input, .todo-edit-area select { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.375rem; margin-bottom: 0.75rem; font-size: 0.875rem; focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500; }
 
 
     </style>
@@ -183,7 +190,7 @@
         let currentHistoryHabitId = null;
         let calendarDate = new Date();
         let skillSortPreference = localStorage.getItem('skillSortPref') || 'name_asc';
-        // Add state for Time Management later if needed
+        let todoSortPreference = localStorage.getItem('todoSortPref') || 'default'; // Added for todos
 
         // --- SVG Icons ---
         const ICONS = { /* ... (Icons remain the same) ... */ edit: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>`, delete: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" /></svg>`, check: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>`, undo: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15 3 9m0 0 6-6M3 9h12a6 6 0 0 1 0 12h-3" /></svg>`, save: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75 l6 6 9-13.5" /></svg>`, cancel: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>`, pin: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 3.75V16.5L12 14.25 7.5 16.5V3.75m9 0H18A2.25 2.25 0 0 1 20.25 6v12A2.25 2.25 0 0 1 18 20.25H6A2.25 2.25 0 0 1 3.75 18V6A2.25 2.25 0 0 1 6 3.75h1.5m9 0h-9" /></svg>`, pin_filled: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M16.5 3.75a.75.75 0 0 1 .75.75v11.19l-4.72-2.36a.75.75 0 0 0-.56 0L7.5 15.69V4.5a.75.75 0 0 1 .75-.75h7.5Z" clip-rule="evenodd" /><path d="M18 3.75a2.25 2.25 0 0 1 2.25 2.25v12a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6A2.25 2.25 0 0 1 6 3.75h12Z" /></svg>`, history: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>`, fire: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor"><path d="M8.75 1.75a.75.75 0 0 0-1.5 0v1.313c-.37-.1-.76-.163-1.17-.198C4.895 2.798 4 3.65 4 4.857c0 .41.13 1.03.393 1.776.24.69.662 1.42 1.28 2.065.617.645 1.333 1.176 2.146 1.571a.75.75 0 0 0 .44-.073c.813-.395 1.53- .926 2.147-1.57.618-.646 1.04-1.376 1.28-2.066C11.87 5.888 12 5.267 12 4.857c0-1.206-.895-2.059-2.08-2.186-.41-.035-.8-.1-1.17-.198V1.75Z" /><path d="M4.708 11.584a.75.75 0 0 1 .875.016C6.333 12.06 7.167 12.5 8 12.5s1.667-.44 2.417-.9a.75.75 0 0 1 .875-.016 14.41 14.41 0 0 1 1.145.61c.217.12.4.27.548.454a.75.75 0 0 1-.918 1.183 12.905 12.905 0 0 0-2.54-.714c-.427-.089-.86-.133-1.296-.133s-.87.044-1.297.133a12.904 12.904 0 0 0-2.54.714.75.75 0 0 1-.918-1.183c.148-.184.33-.334.548-.454a14.411 14.411 0 0 1 1.145-.61Z" /></svg>` };
@@ -193,48 +200,7 @@
         function buildGoalsUI() { /* ... (Code from v1.3) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Mục tiêu</h2><button id="show-goal-form-btn" class="add-new-button" style="background-color: #22c55e;">Tạo mục tiêu mới</button><form id="add-goal-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="goal-input" class="block text-sm font-medium text-gray-700 mb-1">Tên mục tiêu:</label><input type="text" id="goal-input" placeholder="Ví dụ: Học JavaScript nâng cao" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div><label for="goal-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả (tùy chọn):</label><textarea id="goal-desc-input" placeholder="Mô tả chi tiết các bước hoặc lý do..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea></div><div><label for="goal-due-date-input" class="block text-sm font-medium text-gray-700 mb-1">Hạn chót (tùy chọn):</label><input type="date" id="goal-due-date-input" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></div><div class="flex justify-end"><button type="submit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Mục tiêu</button><button id="cancel-add-goal-btn" type="button" class="form-cancel-button">Hủy</button></div></form><div class="flex justify-end mb-4"><div class="flex items-center space-x-2"><label for="goal-sort-select" class="text-sm font-medium text-gray-700 whitespace-nowrap">Sắp xếp:</label><select id="goal-sort-select" class="sort-select"><option value="default" ${goalSortPreference==='default'?'selected':''}>Mặc định</option><option value="due_date_asc" ${goalSortPreference==='due_date_asc'?'selected':''}>Hạn gần nhất</option><option value="due_date_desc" ${goalSortPreference==='due_date_desc'?'selected':''}>Hạn xa nhất</option><option value="name_asc" ${goalSortPreference==='name_asc'?'selected':''}>Tên (A-Z)</option><option value="name_desc" ${goalSortPreference==='name_desc'?'selected':''}>Tên (Z-A)</option><option value="newest" ${goalSortPreference==='newest'?'selected':''}>Ngày tạo mới nhất</option><option value="oldest" ${goalSortPreference==='oldest'?'selected':''}>Ngày tạo cũ nhất</option></select></div></div><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Mục tiêu</h3><div id="goals-list"></div>`; const sgfb=document.getElementById('show-goal-form-btn'); const agf=document.getElementById('add-goal-form'); const gi=document.getElementById('goal-input'); const gdi=document.getElementById('goal-desc-input'); const gddi=document.getElementById('goal-due-date-input'); const cagb=document.getElementById('cancel-add-goal-btn'); const gss=document.getElementById('goal-sort-select'); const gl=document.getElementById('goals-list'); sgfb.addEventListener('click',()=>{agf.classList.remove('hidden'); sgfb.classList.add('hidden'); gi.focus();}); cagb.addEventListener('click',()=>{agf.classList.add('hidden'); sgfb.classList.remove('hidden'); gi.value=''; gdi.value=''; gddi.value='';}); agf.addEventListener('submit',(e)=>{e.preventDefault();addGoal(gi,gdi,gddi,gl,agf,sgfb);}); gss.addEventListener('change',(e)=>{goalSortPreference=e.target.value; localStorage.setItem('goalSortPref',goalSortPreference); displayGoals(gl,goalSortPreference);}); displayGoals(gl,goalSortPreference); }
         function buildHabitsUI() { /* ... (Code from v1.0) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} const s=calculateHabitStats(); appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Theo dõi Thói quen</h2><div id="habit-stats-area" class="habit-stats">${s.totalHabits>0?`Hoàn thành hôm nay: <strong>${s.completedToday} / ${s.totalHabits}</strong> (${s.todayCompletionRate}%)`:'Thêm thói quen để bắt đầu theo dõi!'}${s.totalHabits>0?`<br>Tỷ lệ hoàn thành (7 ngày qua): <strong>${s.last7DaysCompletionRate}%</strong>`:''}</div><button id="show-habit-form-btn" class="add-new-button" style="background-color: #a855f7;">Tạo thói quen mới</button><form id="add-habit-form" class="mb-6 flex items-center space-x-2 hidden"><input type="text" id="habit-input" placeholder="Nhập thói quen mới..." required class="flex-grow p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"><button type="submit" class="bg-purple-500 hover:bg-purple-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-habit-btn" type="button" class="form-cancel-button !ml-2 !py-2 !px-4">Hủy</button></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Thói quen Hôm nay (${getTodayDateString()})</h3><div id="habits-list"></div>`; const shfb=document.getElementById('show-habit-form-btn'); const ahf=document.getElementById('add-habit-form'); const hi=document.getElementById('habit-input'); const cahb=document.getElementById('cancel-add-habit-btn'); const hl=document.getElementById('habits-list'); shfb.addEventListener('click',()=>{ahf.classList.remove('hidden'); shfb.classList.add('hidden'); hi.focus();}); cahb.addEventListener('click',()=>{ahf.classList.add('hidden'); shfb.classList.remove('hidden'); hi.value='';}); ahf.addEventListener('submit',(e)=>{e.preventDefault();addHabit(hi,hl,ahf,shfb);}); displayHabits(hl); }
         function buildSkillsUI() { /* ... (Code from v1.4) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Quản lý Kỹ năng</h2><button id="show-skill-form-btn" class="add-new-button" style="background-color: #f59e0b;">Thêm kỹ năng mới</button><form id="add-skill-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="skill-input" class="block text-sm font-medium text-gray-700 mb-1">Tên kỹ năng:</label><input type="text" id="skill-input" placeholder="Ví dụ: Lập trình Python" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"></div><div><label for="skill-level-select" class="block text-sm font-medium text-gray-700 mb-1">Mức độ (tùy chọn):</label><select id="skill-level-select" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"><option value="">-- Chọn mức độ --</option><option value="Beginner">Người mới bắt đầu</option><option value="Intermediate">Trung cấp</option><option value="Advanced">Nâng cao</option><option value="Expert">Chuyên gia</option></select></div><div><label for="skill-desc-input" class="block text-sm font-medium text-gray-700 mb-1">Mô tả/Ghi chú (tùy chọn):</label><textarea id="skill-desc-input" placeholder="Thêm mô tả, tài liệu tham khảo,..." rows="3" class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500"></textarea></div><div class="flex justify-end"><button type="submit" class="bg-amber-500 hover:bg-amber-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm Kỹ năng</button><button id="cancel-add-skill-btn" type="button" class="form-cancel-button">Hủy</button></div></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Kỹ năng</h3><div id="skills-list"></div>`; const ssfb=document.getElementById('show-skill-form-btn'); const asf=document.getElementById('add-skill-form'); const ski=document.getElementById('skill-input'); const sls=document.getElementById('skill-level-select'); const sdi=document.getElementById('skill-desc-input'); const casb=document.getElementById('cancel-add-skill-btn'); const sl=document.getElementById('skills-list'); ssfb.addEventListener('click',()=>{asf.classList.remove('hidden'); ssfb.classList.add('hidden'); ski.focus();}); casb.addEventListener('click',()=>{asf.classList.add('hidden'); ssfb.classList.remove('hidden'); ski.value=''; sls.value=''; sdi.value='';}); asf.addEventListener('submit',(e)=>{e.preventDefault();addSkill(ski,sls,sdi,sl,asf,ssfb);}); displaySkills(sl); }
-
-        // *** NEW: buildTimeManagementUI Function (ToDo List) ***
-        function buildTimeManagementUI() {
-            if (!appContent.classList.contains('app-module-container')) {
-                 appContent.className = 'app-module-container';
-            }
-            appContent.innerHTML = `
-                <h2 class="text-xl font-semibold mb-4">Danh sách Việc cần làm</h2>
-                <button id="show-todo-form-btn" class="add-new-button" style="background-color: #14b8a6;">Thêm việc mới</button>
-                <form id="add-todo-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden">
-                     <div>
-                         <label for="todo-input" class="block text-sm font-medium text-gray-700 mb-1">Nội dung công việc:</label>
-                         <input type="text" id="todo-input" placeholder="Ví dụ: Hoàn thành báo cáo tuần" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500">
-                     </div>
-                     {/* Add priority/due date later if needed */}
-                    <div class="flex justify-end">
-                        <button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">
-                            Thêm
-                        </button>
-                        <button id="cancel-add-todo-btn" type="button" class="form-cancel-button">Hủy</button>
-                    </div>
-                </form>
-                <h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Công việc</h3>
-                <div id="todo-list"></div> {/* Removed space-y */}
-            `;
-
-            // Get references
-            const showTodoFormBtn = document.getElementById('show-todo-form-btn');
-            const addTodoForm = document.getElementById('add-todo-form');
-            const todoInput = document.getElementById('todo-input');
-            const cancelAddTodoBtn = document.getElementById('cancel-add-todo-btn');
-            const todoList = document.getElementById('todo-list');
-
-            // Event listeners
-            showTodoFormBtn.addEventListener('click', () => { addTodoForm.classList.remove('hidden'); showTodoFormBtn.classList.add('hidden'); todoInput.focus(); });
-            cancelAddTodoBtn.addEventListener('click', () => { addTodoForm.classList.add('hidden'); showTodoFormBtn.classList.remove('hidden'); todoInput.value = ''; });
-            addTodoForm.addEventListener('submit', (e) => { e.preventDefault(); addTodo(todoInput, todoList, addTodoForm, showTodoFormBtn); });
-
-            // Initial display
-            displayTodos(todoList);
-        }
-
+        function buildTimeManagementUI() { /* ... (Code from v1.9) ... */ if(!appContent.classList.contains('app-module-container')){appContent.className='app-module-container';} appContent.innerHTML=`<h2 class="text-xl font-semibold mb-4">Danh sách Việc cần làm</h2><button id="show-todo-form-btn" class="add-new-button" style="background-color: #14b8a6;">Thêm việc mới</button><form id="add-todo-form" class="mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 space-y-3 hidden"><div><label for="todo-input" class="block text-sm font-medium text-gray-700 mb-1">Nội dung công việc:</label><input type="text" id="todo-input" placeholder="Ví dụ: Hoàn thành báo cáo tuần" required class="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"></div><div class="flex justify-end"><button type="submit" class="bg-teal-500 hover:bg-teal-600 text-white font-semibold py-2 px-4 rounded-md transition duration-150 ease-in-out">Thêm</button><button id="cancel-add-todo-btn" type="button" class="form-cancel-button">Hủy</button></div></form><h3 class="text-lg font-semibold mb-3 text-gray-700">Danh sách Công việc</h3><div id="todo-list"></div>`; const stfb=document.getElementById('show-todo-form-btn'); const atf=document.getElementById('add-todo-form'); const ti=document.getElementById('todo-input'); const catb=document.getElementById('cancel-add-todo-btn'); const tl=document.getElementById('todo-list'); stfb.addEventListener('click',()=>{atf.classList.remove('hidden'); stfb.classList.add('hidden'); ti.focus();}); catb.addEventListener('click',()=>{atf.classList.add('hidden'); stfb.classList.remove('hidden'); ti.value='';}); atf.addEventListener('submit',(e)=>{e.preventDefault();addTodo(ti,tl,atf,stfb);}); displayTodos(tl); }
 
         // --- Core Application Logic ---
         function renderAppContent() {
@@ -259,7 +225,7 @@
                     case 'goals': buildGoalsUI(); break;
                     case 'habits': buildHabitsUI(); break;
                     case 'skills': buildSkillsUI(); break;
-                    case 'time': buildTimeManagementUI(); break; // Corrected call
+                    case 'time': buildTimeManagementUI(); break;
                     default: appContent.innerHTML='<p class="empty-state-message">Module không xác định.</p>';
                 }
             }, 0);
@@ -317,121 +283,14 @@
         function toggleSkillEdit(skillId, skillsListElement) { /* ... (Code from v1.4) ... */ displaySkills(skillsListElement); const el=skillsListElement.querySelector(`[data-skill-id='${skillId}']`); if(!el)return; const s=getSkills(); const sk=s.find(i=>i.id===skillId); if(!sk)return; const ea=document.createElement('div'); ea.classList.add('skill-edit-area'); const nl=document.createElement('label'); nl.textContent="Tên Kỹ năng:"; const ni=document.createElement('input'); ni.type='text'; ni.value=sk.name; ni.required=true; ea.appendChild(nl); ea.appendChild(ni); const ll=document.createElement('label'); ll.textContent="Mức độ:"; ll.classList.add('mt-2'); const ls=document.createElement('select'); ls.id=`edit-skill-level-${skillId}`; ll.htmlFor=ls.id; ls.innerHTML=`<option value="" ${sk.level===''?'selected':''}>-- Chọn mức độ --</option><option value="Beginner" ${sk.level==='Beginner'?'selected':''}>Người mới bắt đầu</option><option value="Intermediate" ${sk.level==='Intermediate'?'selected':''}>Trung cấp</option><option value="Advanced" ${sk.level==='Advanced'?'selected':''}>Nâng cao</option><option value="Expert" ${sk.level==='Expert'?'selected':''}>Chuyên gia</option>`; ea.appendChild(ll); ea.appendChild(ls); const dsl=document.createElement('label'); dsl.textContent="Mô tả/Ghi chú:"; dsl.classList.add('mt-2'); const dst=document.createElement('textarea'); dst.rows='3'; dst.value=sk.description||''; ea.appendChild(dsl); ea.appendChild(dst); const ebc=document.createElement('div'); ebc.classList.add('flex','justify-end','mt-3'); const sb=document.createElement('button'); sb.classList.add('action-button-icon','save-icon-btn'); sb.innerHTML=ICONS.save; sb.setAttribute('aria-label','Lưu thay đổi'); sb.onclick=()=>saveSkillEdit(skillId,ni.value,ls.value,dst.value,skillsListElement); const cb=document.createElement('button'); cb.classList.add('action-button-icon','cancel-icon-btn'); cb.innerHTML=ICONS.cancel; cb.setAttribute('aria-label','Hủy bỏ'); cb.onclick=()=>displaySkills(skillsListElement); ebc.appendChild(sb); ebc.appendChild(cb); ea.appendChild(ebc); el.innerHTML=''; el.appendChild(ea); el.classList.add('editing'); ni.focus(); }
         function saveSkillEdit(skillId, newName, newLevel, newDescription, skillsListElement) { /* ... (Code from v1.4) ... */ const tn=newName.trim(); if(!tn){alert("Tên kỹ năng không được để trống!");return;} let s=getSkills(); const de=s.some(sk=>sk.id!==skillId&&sk.name.toLowerCase()===tn.toLowerCase()); if(de){alert(`Tên kỹ năng "${tn}" đã tồn tại! Vui lòng chọn tên khác.`);return;} const i=s.findIndex(sk=>sk.id===skillId); if(i>-1){s[i].name=tn; s[i].level=newLevel; s[i].description=newDescription.trim(); saveSkills(s); displaySkills(skillsListElement); console.log(`Saved edit for skill ID: ${skillId}`);} else {console.error("Could not find skill to save edit:",skillId); displaySkills(skillsListElement);} }
 
-        // --- *** NEW: Time Management (ToDo List) Functions *** ---
+        // --- Time Management (ToDo List) Functions ---
         const TODOS_STORAGE_KEY = 'personalTodos';
-
-        function getTodos() {
-            const todos = localStorage.getItem(TODOS_STORAGE_KEY);
-            try {
-                const parsedTodos = todos ? JSON.parse(todos) : [];
-                return parsedTodos.map(todo => ({ ...todo, completed: todo.completed || false }));
-            } catch (e) {
-                console.error("Error parsing todos:", e); return [];
-            }
-        }
-
-        function saveTodos(todos) {
-            localStorage.setItem(TODOS_STORAGE_KEY, JSON.stringify(todos));
-        }
-
-        function displayTodos(todoListElement) {
-            if (!todoListElement) { console.error("Todo list element needed"); return; }
-            const todos = getTodos();
-            todoListElement.innerHTML = '';
-
-            if (todos.length === 0) {
-                todoListElement.innerHTML = '<p class="empty-state-message">Chưa có việc cần làm nào.</p>';
-                return;
-            }
-
-            // Sort: Incomplete first, then by creation date (newest first)
-            todos.sort((a, b) => (a.completed - b.completed) || (b.createdAt - a.createdAt));
-
-            todos.forEach((todo, index) => {
-                const todoElement = document.createElement('div');
-                todoElement.dataset.todoId = todo.id;
-                const bgColor = index % 2 === 0 ? 'bg-white' : 'bg-gray-50'; // Zebra striping
-                todoElement.classList.add('todo-item', bgColor);
-                if (todo.completed) {
-                    todoElement.classList.add('completed');
-                    todoElement.classList.remove('bg-white', 'bg-gray-50');
-                }
-
-                const checkbox = document.createElement('input');
-                checkbox.type = 'checkbox';
-                checkbox.checked = todo.completed;
-                checkbox.classList.add('todo-checkbox');
-                checkbox.onchange = () => toggleTodoComplete(todo.id, todoListElement);
-
-                const textElement = document.createElement('span');
-                textElement.classList.add('todo-text');
-                textElement.textContent = todo.text;
-
-                const deleteButton = document.createElement('button');
-                deleteButton.classList.add('action-button-icon', 'delete-icon-btn');
-                deleteButton.innerHTML = ICONS.delete;
-                deleteButton.setAttribute('aria-label', 'Xóa công việc');
-                deleteButton.onclick = () => deleteTodo(todo.id, todoListElement);
-
-                todoElement.appendChild(checkbox);
-                todoElement.appendChild(textElement);
-                todoElement.appendChild(deleteButton);
-                todoListElement.appendChild(todoElement);
-            });
-        }
-
-        function addTodo(todoInputElement, todoListElement, formElement, showFormBtn) {
-            if (!todoInputElement || !todoListElement || !formElement || !showFormBtn) return;
-            const todoText = todoInputElement.value.trim();
-
-            if (todoText) {
-                const todos = getTodos();
-                const now = Date.now();
-                const newTodo = {
-                    id: now,
-                    text: todoText,
-                    completed: false,
-                    createdAt: now
-                };
-                todos.push(newTodo);
-                saveTodos(todos);
-
-                // Clear input, hide form, show button
-                todoInputElement.value = '';
-                formElement.classList.add('hidden');
-                showFormBtn.classList.remove('hidden');
-
-                displayTodos(todoListElement); // Refresh list
-                console.log("Added todo:", newTodo);
-            } else {
-                alert("Nội dung công việc không được để trống!");
-            }
-        }
-
-        function deleteTodo(todoId, todoListElement) {
-            if (!window.confirm("Bạn có chắc muốn xóa công việc này không?")) return;
-            let todos = getTodos();
-            todos = todos.filter(todo => todo.id !== todoId);
-            saveTodos(todos);
-            displayTodos(todoListElement); // Refresh list
-            console.log("Deleted todo ID:", todoId);
-        }
-
-        function toggleTodoComplete(todoId, todoListElement) {
-            let todos = getTodos();
-            const todoIndex = todos.findIndex(todo => todo.id === todoId);
-
-            if (todoIndex > -1) {
-                todos[todoIndex].completed = !todos[todoIndex].completed;
-                // Optionally add modifiedAt timestamp
-                // todos[todoIndex].modifiedAt = Date.now();
-                saveTodos(todos);
-                displayTodos(todoListElement); // Refresh list
-                console.log(`Toggled completion for todo ID: ${todoId} to ${todos[todoIndex].completed}`);
-            } else {
-                console.error("Could not find todo to toggle:", todoId);
-            }
-        }
+        function getTodos() { /* ... (Code from v1.9) ... */ const t=localStorage.getItem(TODOS_STORAGE_KEY); try { const p=t?JSON.parse(t):[]; return p.map(td=>({...td, completed:td.completed||false})); } catch(e){console.error("Error parsing todos:",e); return [];} }
+        function saveTodos(todos) { /* ... (Code from v1.9) ... */ localStorage.setItem(TODOS_STORAGE_KEY,JSON.stringify(todos)); }
+        function displayTodos(todoListElement) { /* ... (Code from v1.9, zebra striping added) ... */ if(!todoListElement){console.error("Todo list element needed");return;} const t=getTodos(); todoListElement.innerHTML=''; if(t.length===0){todoListElement.innerHTML='<p class="empty-state-message">Chưa có việc cần làm nào.</p>';return;} t.sort((a,b)=>(a.completed-b.completed)||(b.createdAt-a.createdAt)); t.forEach((td, index)=>{const te=document.createElement('div'); te.dataset.todoId=td.id; const bg=index%2===0?'bg-white':'bg-gray-50'; te.classList.add('todo-item',bg); if(td.completed){te.classList.add('completed'); te.classList.remove('bg-white','bg-gray-50');} const cb=document.createElement('input'); cb.type='checkbox'; cb.checked=td.completed; cb.classList.add('todo-checkbox'); cb.onchange=()=>toggleTodoComplete(td.id,todoListElement); const tx=document.createElement('span'); tx.classList.add('todo-text'); tx.textContent=td.text; const db=document.createElement('button'); db.classList.add('action-button-icon','delete-icon-btn'); db.innerHTML=ICONS.delete; db.setAttribute('aria-label','Xóa công việc'); db.onclick=()=>deleteTodo(td.id,todoListElement); const contentDiv = document.createElement('div'); contentDiv.classList.add('todo-item-content'); contentDiv.appendChild(cb); contentDiv.appendChild(tx); contentDiv.appendChild(db); todoElement.appendChild(contentDiv); todoListElement.appendChild(te);}); }
+        function addTodo(todoInputElement, todoListElement, formElement, showFormBtn) { /* ... (Code from v1.9) ... */ if(!todoInputElement||!todoListElement||!formElement||!showFormBtn)return; const tt=todoInputElement.value.trim(); if(tt){const t=getTodos(); const n=Date.now(); const nt={id:n,text:tt,completed:false,createdAt:n}; t.push(nt); saveTodos(t); todoInputElement.value=''; formElement.classList.add('hidden'); showFormBtn.classList.remove('hidden'); displayTodos(todoListElement); console.log("Added todo:",nt);} else {alert("Nội dung công việc không được để trống!");} }
+        function deleteTodo(todoId, todoListElement) { /* ... (Code from v1.9) ... */ if(!window.confirm("Bạn có chắc muốn xóa công việc này không?"))return; let t=getTodos(); t=t.filter(td=>td.id!==todoId); saveTodos(t); displayTodos(todoListElement); console.log("Deleted todo ID:",todoId); }
+        function toggleTodoComplete(todoId, todoListElement) { /* ... (Code from v1.9) ... */ let t=getTodos(); const i=t.findIndex(td=>td.id===todoId); if(i>-1){t[i].completed=!t[i].completed; saveTodos(t); displayTodos(todoListElement); console.log(`Toggled completion for todo ID: ${todoId} to ${t[i].completed}`);} else {console.error("Could not find todo to toggle:",todoId);} }
 
 
         // --- Initialization and Event Listeners ---
